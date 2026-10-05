@@ -1,11 +1,9 @@
 \section{Data and Experimental Setup}
 \label{sec:setup}
 
-The study is one grid: every model is trained and tested under every split protocol with the same tuning budget, and everything except the split is held fixed.
-
 \subsection{Datasets}
 
-We use two public payment-fraud datasets that carry a timestamp, which a chronological split requires. Table~\ref{tab:data} summarises them.
+We use two public payment-fraud datasets that carry a timestamp, which a chronological split requires (Table~\ref{tab:data}).
 
 \textbf{IEEE-CIS} is the labelled portion of the data released by Vesta Corporation for the IEEE-CIS Fraud Detection competition~\cite{ieeecis2019fraud}: card-not-present e-commerce transactions covering about six months. Each transaction has an amount, a time offset in seconds, and several hundred anonymised card, address, device, counting and vendor-engineered columns. It is our main dataset because it is large, spans months, and has enough fraud cases to give stable estimates.
 
@@ -17,9 +15,9 @@ Feature engineering is deliberately minimal, because the subject is evaluation r
 
 \subsection{Split protocols}
 
-Figure~\ref{fig:splits} shows the protocols.
-
 \input{sections/splitfig}
+
+Figure~\ref{fig:splits} shows the protocols.
 
 \begin{description}[leftmargin=1em,itemsep=2pt]
 \item[Random.] A stratified random split into 70\% training, 10\% validation and 20\% test transactions. This is the common practice in published work.

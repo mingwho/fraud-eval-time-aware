@@ -1,0 +1,34 @@
+{
+ "val_pr_auc": 0.8444997230502519,
+ "tune_seconds": 160.95032405853271,
+ "params": {
+  "max_depth": 10,
+  "min_samples_leaf": 1,
+  "max_features": 0.12661866722740328,
+  "alpha": 0.05988838452039126
+ },
+ "n_iter": null,
+ "fit_seconds": 4.863403081893921,
+ "metrics": {
+  "n": 56962,
+  "n_fraud": 75,
+  "prevalence": 0.001316667251852112,
+  "pr_auc": 0.7876132784519548,
+  "roc_auc": 0.9872799292163997,
+  "f1_at_0.5": 0.8031496062992126,
+  "recall@0.005": 0.8,
+  "value_recall@0.005": 0.6897775466215395,
+  "precision@0.005": 0.21052631578947367,
+  "recall@0.01": 0.8133333333333334,
+  "value_recall@0.01": 0.6897775466215395,
+  "precision@0.01": 0.10701754385964912
+ },
+ "exp": "main",
+ "dataset": "ulb",
+ "protocol": "chrono",
+ "model": "rf",
+ "imb": "weight",
+ "seed": 1,
+ "n_train": 227845,
+ "n_test": 56962
+}

@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+data/
+logs/
+# Stored test scores are large; the per-run JSON files with metrics are tracked.
+results/**/*.npz
+results/*.npy
+paper/template/
+paper/*.pdf
+.DS_Store

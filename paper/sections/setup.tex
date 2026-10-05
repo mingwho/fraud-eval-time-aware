@@ -1,0 +1,85 @@
+\section{Data and Experimental Setup}
+\label{sec:setup}
+
+The study is one grid: every model is trained and tested under every split protocol with the same tuning budget, and everything except the split is held fixed.
+
+\subsection{Datasets}
+
+We use the two public payment-fraud datasets that carry a timestamp, which a chronological split requires. Table~\ref{tab:data} summarises them.
+
+\textbf{IEEE-CIS} is the labelled portion of the data released by Vesta Corporation for the IEEE-CIS Fraud Detection competition~\cite{ieeecis2019fraud}: card-not-present e-commerce transactions covering about six months. Each transaction has an amount, a time offset in seconds, and several hundred anonymised card, address, device, counting and vendor-engineered columns. It is our main dataset because it is large, spans months, and has enough fraud cases to give stable estimates.
+
+\textbf{ULB} is the credit card dataset released by the Machine Learning Group of Universit\'e Libre de Bruxelles~\cite{dalpozzolo2015calibrating}: two days of transactions by European cardholders, described by 28 principal components, the amount and a time offset. It is short and has few fraud cases, which makes every estimate on it noisy, but it is the most widely used benchmark, so an inflation result on it bears on many published papers.
+
+\input{generated/table_data}
+
+Feature engineering is deliberately minimal, because the subject is evaluation rather than leaderboard performance. We use the raw columns. Categorical columns are replaced by integer codes assigned in lexicographic order, which uses neither labels nor frequencies. The timestamp orders the data but is \emph{not} given to the models as a feature: a raw timestamp lets a model trained on a random split memorise when fraud bursts occurred, and we did not want the headline comparison to depend on that. Section~\ref{sec:mechanism} reports what happens when it is included.
+
+\subsection{Split protocols}
+
+Figure~\ref{fig:splits} shows the protocols.
+
+\input{sections/splitfig}
+
+\begin{description}[leftmargin=1em,itemsep=2pt]
+\item[Random.] A stratified random split into 70\% training, 10\% validation and 20\% test transactions. This is the common practice in published work.
+\item[Chronological.] Transactions are ordered by time; the first 70\% form the training set, the next 10\% the validation set and the last 20\% the test set.
+\item[Chronological with a gap (IEEE-CIS).] As above, but the seven days before the test period are removed from the training and validation data. In production the label of a transaction arrives only after a chargeback or an investigation, so the most recent transactions cannot be used for training~\cite{dalpozzolo2018credit}.
+\item[Rolling windows (IEEE-CIS).] The six months are cut into six equal blocks. A model is trained on blocks $k$ to $k{+}2$ and tested on block $k{+}3$, for $k=1,2,3$. For each window we also draw a random split of the same four blocks with the same test-set size, so the random-versus-chronological comparison is repeated on three different periods.
+\end{description}
+
+Under the random and chronological protocols the final model is trained on the same number of transactions (80\%) and tested on the same number (20\%). Only \emph{which} transactions land on each side differs.
+
+The two test sets do differ, however, and a later period could simply be harder. We therefore add two controls in which both protocols are scored on the same transactions. The \emph{period-matched} control scores each random-split model only on those of its test transactions that fall inside the chronological test period. The \emph{blocked cross-validation} control compares five-fold cross-validation with random folds against five-fold cross-validation whose folds are five contiguous time blocks; each scheme tests every transaction exactly once. Blocked folds are not forward-looking (a model may be trained on later data), but they remove the interleaving of training and test transactions in time, so the difference between the two schemes isolates that interleaving.
+
+\subsection{Models and tuning}
+
+We evaluate five standard classifiers: logistic regression, a random forest~\cite{breiman2001random}, XGBoost~\cite{chen2016xgboost}, LightGBM~\cite{ke2017lightgbm} and a small multilayer perceptron (MLP). Table~\ref{tab:space} lists the search spaces.
+
+Each model is tuned with 30 trials of Optuna's tree-structured Parzen estimator~\cite{akiba2019optuna}, maximising \prauc{} on the validation set of the protocol at hand. The boosted models and the MLP stop early on validation \prauc{}. The selected configuration is then refitted on training plus validation data, with the number of boosting rounds or epochs found during tuning, and scored once on the test set. A seed repeats this whole pipeline: split (random protocol only), tuning, refit and test. We run five seeds. Under the chronological protocol the split is fixed, so the seeds vary only the tuner and the model; the standard deviations we report for it therefore understate sampling uncertainty, and we complement them with a bootstrap over test transactions and with the rolling windows.
+
+The tree models receive the raw matrix with missing values. Logistic regression and the MLP receive median-imputed, standardised features, with the amount log-transformed; the imputation and scaling statistics are computed on the training rows of each fit and never on validation or test rows.
+
+\begin{table}[t]
+\caption{Hyperparameter search spaces (30 trials per model, protocol and seed). $\alpha$ is the class-weight exponent of Section~\ref{sec:imbalance}.}
+\label{tab:space}
+\small
+\begin{tabular}{ll}
+\toprule
+Model & Search space \\
+\midrule
+Logistic regression & $C \in [10^{-4}, 10^{2}]$ (log); $\alpha \in [0,1]$ \\
+Random forest & 100 trees; depth $\in [4,24]$; minimum leaf size $\in [1,50]$ (log); feature fraction $\in [0.03,0.3]$; $\alpha$ \\
+XGBoost & learning rate $\in [0.02,0.3]$ (log); depth $\in [3,10]$; minimum child weight $\in [1,50]$ (log); row \\
+ & subsample $\in [0.5,1]$; column subsample $\in [0.3,1]$; $\lambda \in [10^{-2},10]$ (log); $\le$2000 rounds; $\alpha$ \\
+LightGBM & learning rate $\in [0.02,0.3]$ (log); leaves $\in [15,255]$ (log); minimum leaf size $\in [10,200]$ (log); row \\
+ & subsample $\in [0.5,1]$; column subsample $\in [0.3,1]$; $\lambda \in [10^{-2},10]$ (log); $\le$2000 rounds; $\alpha$ \\
+MLP & 2--3 hidden layers of width 64, 128 or 256; dropout $\in [0,0.5]$; learning rate $\in [10^{-4},10^{-2}]$ (log); \\
+ & weight decay $\in [10^{-6},10^{-3}]$ (log); AdamW, batch size 1024, $\le$30 epochs; $\alpha$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Class imbalance and the oversampling leak}
+\label{sec:imbalance}
+
+The default treatment of imbalance is cost-sensitive learning. The positive class receives weight $r^{\alpha}$, where $r$ is the ratio of legitimate to fraudulent training transactions and $\alpha \in [0,1]$ is tuned with the other hyperparameters; $\alpha=0$ is no weighting and $\alpha=1$ is full balancing.
+
+A second experiment replaces class weights by SMOTE~\cite{chawla2002smote}, which synthesises minority examples by interpolating between a minority example and one of its minority-class nearest neighbours. We run it in two ways under the random split:
+
+\begin{description}[leftmargin=1em,itemsep=2pt]
+\item[SMOTE on training rows.] The correct pipeline. Only the rows used to fit a model are oversampled; validation and test rows are untouched.
+\item[SMOTE before the split.] The flawed pipeline found in the literature. The whole dataset is scaled and oversampled, and the balanced result is then split at random. Test rows are now half synthetic, and synthetic training rows have been interpolated from test fraud cases.
+\end{description}
+
+For the flawed pipeline we report two scores: the score on its own oversampled test set, which is the number such a study would publish, and the score of the same fitted models on only the genuine transactions of that test set. The first mixes two effects, a test set that no longer has the real class ratio and information flowing from test to training rows. The second isolates the information flow.
+
+\subsection{Metrics}
+
+The primary metric is the area under the precision--recall curve (\prauc{}, computed as average precision), which is more informative than \rocauc{} when positives are rare~\cite{davis2006relationship,saito2015precision}. We report \rocauc{} for comparison with prior work.
+
+A fraud team can review only a limited number of alerts, so we also report \emph{alert-budget} metrics. The highest-scored 0.5\% or 1\% of test transactions are flagged, and we measure \emph{recall}, the share of fraud cases among the flagged transactions relative to all fraud cases in the test set, and \emph{value recall}, the share of the fraudulent amount that the flagged transactions account for. Value recall weights each caught fraud by the money at stake.
+
+\subsection{Implementation}
+
+Experiments use Python 3.12 with scikit-learn 1.9~\cite{pedregosa2011scikit}, XGBoost 3.4, LightGBM 4.7, PyTorch 2.14~\cite{paszke2019pytorch}, imbalanced-learn 0.14~\cite{lemaitre2017imbalanced} and Optuna 5.0, on a 14-core Apple M4 Pro laptop with 24\,GB of memory. The test scores of every run are stored, and all tables and figures are generated from them. Code to reproduce every number is released with the paper.

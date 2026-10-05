@@ -1,0 +1,37 @@
+\documentclass[manuscript,screen,nonacm]{acmart}
+% The conference template is the ACM single-column manuscript format; this is its LaTeX form.
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{enumitem}
+
+\newcommand{\prauc}{PR-AUC}
+\newcommand{\rocauc}{ROC-AUC}
+
+\begin{document}
+
+\title{Random Splits Overstate Fraud Detection: A Time-Aware Re-evaluation of Classical Models on Public Payment Data}
+
+%% AUTHOR BLOCK: fill in before submission.
+\author{Author Name}
+\affiliation{%
+  \institution{Institution}
+  \city{City}
+  \country{Country}}
+\email{email@example.org}
+
+\input{sections/abstract}
+
+\keywords{fraud detection, model evaluation, data leakage, temporal split, class imbalance, SMOTE, payments}
+
+\maketitle
+
+\input{sections/intro}
+\input{sections/related}
+\input{sections/setup}
+\input{sections/results}
+\input{sections/discussion}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
+
+\end{document}

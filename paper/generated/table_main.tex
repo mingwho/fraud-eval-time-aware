@@ -1,0 +1,24 @@
+\begin{table}[t]
+\caption{Random versus chronological split. Mean $\pm$ standard deviation over 5 seeds; $\Delta$ = chronological $-$ random.}
+\label{tab:main}
+\small
+\begin{tabular}{llrrrrrr}
+\toprule
+ &  & \multicolumn{3}{c}{PR-AUC} & \multicolumn{3}{c}{ROC-AUC} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+Dataset & Model & Random & Chrono. & $\Delta$ & Random & Chrono. & $\Delta$ \\
+\midrule
+IEEE-CIS & Logistic regression & 0.474 {\scriptsize$\pm$ 0.006} & 0.360 {\scriptsize$\pm$ 0.001} & -0.114 & 0.865 {\scriptsize$\pm$ 0.005} & 0.840 {\scriptsize$\pm$ 0.001} & -0.025 \\
+ & Random forest & -- & -- & -- & -- & -- & -- \\
+ & XGBoost & -- & -- & -- & -- & -- & -- \\
+ & LightGBM & -- & -- & -- & -- & -- & -- \\
+ & MLP & 0.717 {\scriptsize$\pm$ 0.001} & 0.458 {\scriptsize$\pm$ 0.015} & -0.259 & 0.935 {\scriptsize$\pm$ 0.003} & 0.861 {\scriptsize$\pm$ 0.009} & -0.074 \\
+\addlinespace
+ULB & Logistic regression & 0.762 {\scriptsize$\pm$ 0.042} & 0.787 {\scriptsize$\pm$ 0.000} & +0.024 & 0.983 {\scriptsize$\pm$ 0.007} & 0.986 {\scriptsize$\pm$ 0.000} & +0.003 \\
+ & Random forest & 0.851 {\scriptsize$\pm$ 0.023} & 0.797 {\scriptsize$\pm$ 0.010} & -0.055 & 0.980 {\scriptsize$\pm$ 0.004} & 0.980 {\scriptsize$\pm$ 0.010} & +0.000 \\
+ & XGBoost & 0.856 {\scriptsize$\pm$ 0.036} & 0.796 {\scriptsize$\pm$ 0.013} & -0.059 & 0.986 {\scriptsize$\pm$ 0.006} & 0.984 {\scriptsize$\pm$ 0.004} & -0.002 \\
+ & LightGBM & 0.859 {\scriptsize$\pm$ 0.027} & 0.781 {\scriptsize$\pm$ 0.018} & -0.078 & 0.983 {\scriptsize$\pm$ 0.006} & 0.974 {\scriptsize$\pm$ 0.025} & -0.009 \\
+ & MLP & 0.845 {\scriptsize$\pm$ 0.016} & 0.811 {\scriptsize$\pm$ 0.013} & -0.034 & 0.977 {\scriptsize$\pm$ 0.006} & 0.986 {\scriptsize$\pm$ 0.004} & +0.009 \\
+\bottomrule
+\end{tabular}
+\end{table}

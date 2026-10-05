@@ -2,7 +2,7 @@
 import numpy as np
 from sklearn.metrics import average_precision_score, f1_score, roc_auc_score
 
-BUDGETS = (0.005, 0.01)
+BUDGETS = (0.005, 0.01, 0.05)
 
 
 def budget_metrics(y, score, amount, budget):

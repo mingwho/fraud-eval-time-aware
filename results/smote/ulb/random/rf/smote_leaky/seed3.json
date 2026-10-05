@@ -1,0 +1,47 @@
+{
+ "val_pr_auc": 0.9999976595098726,
+ "tune_seconds": 195.28760313987732,
+ "params": {
+  "max_depth": 22,
+  "min_samples_leaf": 1,
+  "max_features": 0.20457433225586305
+ },
+ "n_iter": null,
+ "fit_seconds": 8.880878925323486,
+ "metrics_as_reported": {
+  "n": 113726,
+  "n_fraud": 56863,
+  "prevalence": 0.5,
+  "pr_auc": 0.9999967073102025,
+  "roc_auc": 0.9999967857371409,
+  "f1_at_0.5": 0.9997450661509384,
+  "recall@0.005": 0.010006506867383008,
+  "value_recall@0.005": 0.010006506867383008,
+  "precision@0.005": 1.0,
+  "recall@0.01": 0.020013013734766015,
+  "value_recall@0.01": 0.020013013734766015,
+  "precision@0.01": 1.0
+ },
+ "metrics": {
+  "n": 56982,
+  "n_fraud": 119,
+  "prevalence": 0.002088378786283388,
+  "pr_auc": 0.9966824822366236,
+  "roc_auc": 0.9999934975660946,
+  "f1_at_0.5": 0.8913857677902621,
+  "recall@0.005": 1.0,
+  "value_recall@0.005": 1.0000000000000002,
+  "precision@0.005": 0.41754385964912283,
+  "recall@0.01": 1.0,
+  "value_recall@0.01": 1.0000000000000002,
+  "precision@0.01": 0.20877192982456141
+ },
+ "exp": "smote",
+ "dataset": "ulb",
+ "protocol": "random",
+ "model": "rf",
+ "imb": "smote_leaky",
+ "seed": 3,
+ "n_train": 454904,
+ "n_test": 113726
+}

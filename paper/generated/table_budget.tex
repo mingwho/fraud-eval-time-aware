@@ -1,0 +1,24 @@
+\begin{table}[t]
+\caption{Alert-budget metrics under the two splits: share of fraud cases (recall) and of fraud value caught when the highest-scored 0.5\% or 1\% of test transactions are flagged.}
+\label{tab:budget}
+\small
+\begin{tabular}{llrrrrrrrrr}
+\toprule
+ &  & \multicolumn{3}{c}{Recall at 0.5\% budget} & \multicolumn{3}{c}{Recall at 1\% budget} & \multicolumn{3}{c}{Value recall at 1\% budget} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+Dataset & Model & Random & Chrono. & $\Delta$ & Random & Chrono. & $\Delta$ & Random & Chrono. & $\Delta$ \\
+\midrule
+IEEE-CIS & Logistic regression & 0.138 {\scriptsize$\pm$ 0.001} & 0.110 {\scriptsize$\pm$ 0.001} & -0.027 & 0.249 {\scriptsize$\pm$ 0.003} & 0.197 {\scriptsize$\pm$ 0.001} & -0.052 & 0.164 {\scriptsize$\pm$ 0.007} & 0.133 {\scriptsize$\pm$ 0.001} & -0.031 \\
+ & Random forest & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & XGBoost & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & LightGBM & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+ & MLP & 0.143 {\scriptsize$\pm$ 0.000} & 0.133 {\scriptsize$\pm$ 0.001} & -0.010 & 0.283 {\scriptsize$\pm$ 0.000} & 0.235 {\scriptsize$\pm$ 0.003} & -0.049 & 0.214 {\scriptsize$\pm$ 0.009} & 0.163 {\scriptsize$\pm$ 0.002} & -0.051 \\
+\addlinespace
+ULB & Logistic regression & 0.878 {\scriptsize$\pm$ 0.028} & 0.867 {\scriptsize$\pm$ 0.000} & -0.011 & 0.890 {\scriptsize$\pm$ 0.026} & 0.875 {\scriptsize$\pm$ 0.007} & -0.015 & 0.763 {\scriptsize$\pm$ 0.065} & 0.695 {\scriptsize$\pm$ 0.001} & -0.068 \\
+ & Random forest & 0.878 {\scriptsize$\pm$ 0.029} & 0.832 {\scriptsize$\pm$ 0.031} & -0.046 & 0.890 {\scriptsize$\pm$ 0.028} & 0.856 {\scriptsize$\pm$ 0.026} & -0.034 & 0.773 {\scriptsize$\pm$ 0.083} & 0.737 {\scriptsize$\pm$ 0.053} & -0.036 \\
+ & XGBoost & 0.882 {\scriptsize$\pm$ 0.025} & 0.819 {\scriptsize$\pm$ 0.007} & -0.063 & 0.906 {\scriptsize$\pm$ 0.023} & 0.853 {\scriptsize$\pm$ 0.019} & -0.053 & 0.821 {\scriptsize$\pm$ 0.108} & 0.779 {\scriptsize$\pm$ 0.027} & -0.043 \\
+ & LightGBM & 0.880 {\scriptsize$\pm$ 0.023} & 0.824 {\scriptsize$\pm$ 0.030} & -0.056 & 0.892 {\scriptsize$\pm$ 0.015} & 0.853 {\scriptsize$\pm$ 0.025} & -0.039 & 0.767 {\scriptsize$\pm$ 0.056} & 0.794 {\scriptsize$\pm$ 0.061} & +0.027 \\
+ & MLP & 0.882 {\scriptsize$\pm$ 0.019} & 0.861 {\scriptsize$\pm$ 0.015} & -0.020 & 0.898 {\scriptsize$\pm$ 0.020} & 0.883 {\scriptsize$\pm$ 0.011} & -0.015 & 0.788 {\scriptsize$\pm$ 0.044} & 0.835 {\scriptsize$\pm$ 0.081} & +0.047 \\
+\bottomrule
+\end{tabular}
+\end{table}

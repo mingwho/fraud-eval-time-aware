@@ -51,9 +51,9 @@ Model & Search space \\
 Logistic regression & $C \in [10^{-4}, 10^{2}]$ (log); $\alpha \in [0,1]$ \\
 Random forest & 100 trees; depth $\in [4,24]$; minimum leaf size $\in [1,50]$ (log); feature fraction $\in [0.03,0.3]$; $\alpha$ \\
 XGBoost & learning rate $\in [0.02,0.3]$ (log); depth $\in [3,10]$; minimum child weight $\in [1,50]$ (log); row \\
- & subsample $\in [0.5,1]$; column subsample $\in [0.3,1]$; $\lambda \in [10^{-2},10]$ (log); $\le$2000 rounds; $\alpha$ \\
+ & subsample $\in [0.5,1]$; column subsample $\in [0.3,1]$; $\lambda \in [10^{-2},10]$ (log); $\le$1000 rounds; $\alpha$ \\
 LightGBM & learning rate $\in [0.02,0.3]$ (log); leaves $\in [15,255]$ (log); minimum leaf size $\in [10,200]$ (log); row \\
- & subsample $\in [0.5,1]$; column subsample $\in [0.3,1]$; $\lambda \in [10^{-2},10]$ (log); $\le$2000 rounds; $\alpha$ \\
+ & subsample $\in [0.5,1]$; column subsample $\in [0.3,1]$; $\lambda \in [10^{-2},10]$ (log); $\le$1000 rounds; $\alpha$ \\
 MLP & 2--3 hidden layers of width 64, 128 or 256; dropout $\in [0,0.5]$; learning rate $\in [10^{-4},10^{-2}]$ (log); \\
  & weight decay $\in [10^{-6},10^{-3}]$ (log); AdamW, batch size 1024, $\le$30 epochs; $\alpha$ \\
 \bottomrule

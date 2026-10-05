@@ -27,14 +27,19 @@ def dataset(name):
 
 
 def collect():
-    """One row per run, metrics flattened."""
+    """One row per run. Metrics are recomputed from the stored test scores."""
     rows = []
     for f in RESULTS.rglob("seed*.json"):
         info = json.loads(f.read_text())
         row = {k: info[k] for k in ("exp", "dataset", "protocol", "model", "imb", "seed",
                                     "n_train", "n_test")}
         row["path"] = str(f.with_suffix(".npz"))
-        row.update(info["metrics"])
+        if info["exp"] == "smote":
+            row.update(info["metrics"])  # rows may index a subsample; keep stored metrics
+        else:
+            ds = dataset(info["dataset"])
+            z = np.load(row["path"])
+            row.update(evaluate(ds.y[z["test_idx"]], z["score"], ds.amount[z["test_idx"]]))
         row.update({f"reported_{k}": v for k, v in info.get("metrics_as_reported", {}).items()})
         row["val_pr_auc"] = info.get("val_pr_auc")
         rows.append(row)
@@ -103,22 +108,27 @@ def fast_ap(y, s):
     return (tp[y == 1] / (np.flatnonzero(y == 1) + 1)).mean()
 
 
-def bootstrap_gap(df, n_boot=1000, seed=0):
+def bootstrap_gap(df, n_boot=500, seed=0):
     """Bootstrap the test rows of every run; CI for mean(chrono) - mean(random) PR-AUC."""
     rng = np.random.default_rng(seed)
     out = []
     main = df[df.exp == "main"]
     for (d, m), grp in main.groupby(["dataset", "model"]):
         ds = dataset(d)
-        runs = {p: [np.load(x) for x in g.path] for p, g in grp.groupby("protocol")}
+        if grp.protocol.nunique() < 2:
+            continue
+        runs = {}
+        for p, g in grp.groupby("protocol"):
+            zs = [np.load(x) for x in g.path]
+            runs[p] = [(ds.y[z["test_idx"]], z["score"]) for z in zs]
         diffs = np.empty(n_boot)
         for b in range(n_boot):
             means = {}
-            for p, zs in runs.items():
+            for p, pairs in runs.items():
                 aps = []
-                for z in zs:
-                    i = rng.integers(0, len(z["score"]), len(z["score"]))
-                    aps.append(fast_ap(ds.y[z["test_idx"][i]], z["score"][i]))
+                for y, score in pairs:
+                    i = rng.integers(0, len(y), len(y))
+                    aps.append(fast_ap(y[i], score[i]))
                 means[p] = np.mean(aps)
             diffs[b] = means["chrono"] - means["random"]
         lo, hi = np.percentile(diffs, [2.5, 97.5])
@@ -128,8 +138,12 @@ def bootstrap_gap(df, n_boot=1000, seed=0):
 
 # ------------------------------------------------------------------ SMOTE
 def table_smote(df):
-    w = df[(df.exp == "main") & (df.protocol == "random")]
     s = df[df.exp == "smote"]
+    # Class-weight baseline: rerun inside the smote experiment where the data were
+    # subsampled, otherwise identical to the random-split runs of the main experiment.
+    sub = s[s.imb == "weight"]
+    w = pd.concat([sub, df[(df.exp == "main") & (df.protocol == "random")
+                           & ~df.dataset.isin(sub.dataset.unique())]])
     cols = [("Class weights", w, "pr_auc", "f1_at_0.5"),
             ("SMOTE on training rows", s[s.imb == "smote"], "pr_auc", "f1_at_0.5"),
             ("SMOTE before split, as reported", s[s.imb == "smote_leaky"],
@@ -238,6 +252,134 @@ def proximity(name, n_seeds=5):
                          "chrono": pd.Series(stats(np.concatenate([tr, va]), te))})
 
 
+def entity_overlap(n_seeds=5):
+    """IEEE-CIS: share of test transactions whose card key also occurs in training.
+    The key (card1, card2, card3, card5, addr1, first-seen day = day - D1) is a
+    heuristic proxy for one payment card."""
+    import splits
+
+    ds = dataset("ieee")
+    col = lambda c: ds.X[:, ds.features.index(c)]
+    parts = {c: col(c) for c in ("card1", "card2", "card3", "card5", "addr1")}
+    parts["start"] = np.floor(ds.t / 86400) - col("D1")
+    key = pd.util.hash_pandas_object(pd.DataFrame(parts).fillna(-1), index=False).to_numpy()
+
+    def stats(dev, te):
+        trf = dev[ds.y[dev] == 1]
+        tef, ten = te[ds.y[te] == 1], te[ds.y[te] == 0]
+        return {"test_fraud_key_among_train_fraud": np.isin(key[tef], key[trf]).mean(),
+                "test_fraud_key_in_train": np.isin(key[tef], key[dev]).mean(),
+                "test_legit_key_among_train_fraud": np.isin(key[ten], key[trf]).mean(),
+                "test_legit_key_in_train": np.isin(key[ten], key[dev]).mean()}
+
+    rnd = []
+    for seed in range(n_seeds):
+        tr, va, te = splits.random_split(ds.y, seed)
+        rnd.append(stats(np.concatenate([tr, va]), te))
+    out = {"random": pd.DataFrame(rnd).mean()}
+    for name, (tr, va, te) in {"chrono": splits.chrono_split(len(ds)),
+                               "chrono_gap": splits.chrono_gap_split(ds.t)}.items():
+        out[name] = pd.Series(stats(np.concatenate([tr, va]), te))
+    g = pd.DataFrame({"key": key, "y": ds.y}).groupby("key").y.agg(["mean", "size"])
+    multi = g[g["size"] > 1]
+    note = (f"distinct keys {len(g)}; keys with >1 transaction {len(multi)}; of those, share "
+            f"with a single label {((multi['mean'] == 0) | (multi['mean'] == 1)).mean():.4f}; "
+            f"keys with any fraud {(g['mean'] > 0).sum()}")
+    return pd.DataFrame(out), note
+
+
+# ------------------------------------------------------------------ figures
+BLUE, ORANGE, INK, MUTED, GRID = "#2a78d6", "#eb6834", "#1a1a19", "#6b6a63", "#e6e5df"
+SERIES = {"random": ("Random split", BLUE, "o"), "chrono": ("Chronological split", ORANGE, "s")}
+
+
+def _style(ax):
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_color(GRID)
+    ax.tick_params(colors=MUTED, labelsize=8, length=0)
+    ax.grid(axis="y", color=GRID, linewidth=0.6)
+    ax.set_axisbelow(True)
+
+
+def figure_rolling(df):
+    """PR-AUC per rolling window: one panel per model, random vs chronological."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    roll = df[(df.exp == "rolling") & (df.dataset == "ieee")].copy()
+    roll["split"] = roll.protocol.str.split("_").str[0]
+    roll["window"] = roll.protocol.str[-1].astype(int)
+    models = [m for m in MODELS if (roll.model == m).any()]
+    fig, axes = plt.subplots(1, len(models), figsize=(7.0, 2.3), sharey=True)
+    for ax, m in zip(np.atleast_1d(axes), models):
+        for split, (label, color, marker) in SERIES.items():
+            part = roll[(roll.model == m) & (roll.split == split)].groupby("window").pr_auc.mean()
+            ax.plot(part.index + 4, part.values, color=color, marker=marker, markersize=5,
+                    linewidth=2, label=label, markeredgecolor="white", markeredgewidth=0.8)
+        ax.set_title(MODEL_NAMES[m], fontsize=9, color=INK)
+        ax.set_xticks([4, 5, 6])
+        ax.set_xlim(3.7, 6.3)
+        _style(ax)
+    np.atleast_1d(axes)[0].set_ylabel("PR-AUC", fontsize=9, color=INK)
+    fig.supxlabel("Test month (trained on the three months before it)", fontsize=9, color=INK, y=0.1)
+    handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=2, frameon=False, fontsize=8.5,
+               bbox_to_anchor=(0.5, -0.04))
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
+    fig.savefig(OUT / "fig_rolling.pdf", bbox_inches="tight")
+    plt.close(fig)
+
+
+def weekly_frame(df, d="ieee"):
+    """PR-AUC by week of the chronological test period, for chronological models and
+    for random-split models scored on their test rows of the same week."""
+    ds = dataset(d)
+    start = ds.t[int(len(ds) * TEST_START)]
+    rows = []
+    for r in df[(df.exp == "main") & (df.dataset == d)].itertuples():
+        z = np.load(r.path)
+        idx, score = z["test_idx"], z["score"]
+        week = np.floor((ds.t[idx] - start) / (7 * 86400)).astype(int)
+        for wk in range(6):
+            keep = week == wk
+            if ds.y[idx[keep]].sum() < 20:
+                continue
+            rows.append({"model": r.model, "protocol": r.protocol, "seed": r.seed, "week": wk + 1,
+                         "pr_auc": fast_ap(ds.y[idx[keep]], score[keep]),
+                         "n_fraud": int(ds.y[idx[keep]].sum())})
+    return pd.DataFrame(rows)
+
+
+def figure_weekly(df):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    wk = weekly_frame(df)
+    models = [m for m in MODELS if (wk.model == m).any()]
+    fig, axes = plt.subplots(1, len(models), figsize=(7.0, 2.3), sharey=True)
+    for ax, m in zip(np.atleast_1d(axes), models):
+        for split, (label, color, marker) in SERIES.items():
+            part = wk[(wk.model == m) & (wk.protocol == split)].groupby("week").pr_auc.mean()
+            ax.plot(part.index, part.values, color=color, marker=marker, markersize=5,
+                    linewidth=2, label=label, markeredgecolor="white", markeredgewidth=0.8)
+        ax.set_title(MODEL_NAMES[m], fontsize=9, color=INK)
+        ax.set_xticks(range(1, 7))
+        _style(ax)
+    np.atleast_1d(axes)[0].set_ylabel("PR-AUC", fontsize=9, color=INK)
+    fig.supxlabel("Week of the final 20% of the timeline", fontsize=9, color=INK, y=0.1)
+    handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=2, frameon=False, fontsize=8.5,
+               bbox_to_anchor=(0.5, -0.04))
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
+    fig.savefig(OUT / "fig_weekly.pdf", bbox_inches="tight")
+    plt.close(fig)
+    return wk
+
+
 def summary(df):
     """Plain-text digest of every number quoted in the prose."""
     lines = []
@@ -263,23 +405,30 @@ def summary(df):
                 extra = ""
                 if metric == "pr_auc":
                     pmm = pmatch[(pmatch.dataset == d) & (pmatch.model == m)].pr_auc
-                    lo, hi = boot.loc[(d, m), ["lo", "hi"]]
-                    extra = (f" | period-matched random {pmm.mean():.4f}+-{pmm.std(ddof=1):.4f}"
-                             f" | boot CI of gap [{lo:+.4f}, {hi:+.4f}]")
+                    extra = f" | period-matched random {pmm.mean():.4f}+-{pmm.std(ddof=1):.4f}"
+                    if (d, m) in boot.index:
+                        lo, hi = boot.loc[(d, m), ["lo", "hi"]]
+                        extra += f" | boot CI of gap [{lo:+.4f}, {hi:+.4f}]"
                 lines.append(f"{m:5s} random {r:.4f}+-{sd.loc[m, 'random']:.4f} chrono {c:.4f}"
                              f"+-{sd.loc[m, 'chrono']:.4f} gap {c - r:+.4f} "
                              f"rel {100 * (c - r) / r:+.1f}%{extra}")
-            order_r = mean["random"].reindex(MODELS).rank(ascending=False)
-            order_c = mean["chrono"].reindex(MODELS).rank(ascending=False)
+            both = mean.dropna(subset=["random", "chrono"])
+            if len(both) < 3:
+                continue
+            order_r = both["random"].rank(ascending=False)
+            order_c = both["chrono"].rank(ascending=False)
             tau = kendalltau(order_r, order_c).statistic
             lines.append(f"rank random {order_r.astype(int).to_dict()} chrono "
                          f"{order_c.astype(int).to_dict()} kendall tau {tau:.2f}; mean gap "
-                         f"{(mean['chrono'] - mean['random']).mean():+.4f}")
+                         f"{(both['chrono'] - both['random']).mean():+.4f}")
         pm_n = pmatch[pmatch.dataset == d]
         lines.append(f"period-matched test: n={pm_n.n.mean():.0f} n_fraud={pm_n.n_fraud.mean():.1f}")
     for d in available(df, "main"):
         lines.append(f"== proximity of test fraud to training fraud: {d}")
         lines.append(proximity(d).round(4).to_string())
+    if "ieee" in available(df, "main"):
+        table, note = entity_overlap()
+        lines += ["== card-key overlap (ieee)", note, table.round(4).to_string()]
     cv = cv_frame(df)
     if len(cv):
         lines.append("== cv (per-fold PR-AUC)")
@@ -318,6 +467,12 @@ def main():
         table_smote(df)
     if (df.exp == "cv").any():
         table_cv(df)
+    if ((df.exp == "rolling") & (df.dataset == "ieee")).any():
+        figure_rolling(df)
+    if ((df.exp == "main") & (df.dataset == "ieee")).any():
+        wk = figure_weekly(df)
+        wk.groupby(["model", "protocol", "week"])[["pr_auc", "n_fraud"]].mean().round(4).to_csv(
+            OUT / "weekly.csv")
     print(summary(df))
 
 

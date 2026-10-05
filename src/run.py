@@ -44,6 +44,11 @@ def stage(M, imb, amount_col, X, y, fit_rows, eval_rows, seed):
     return Xf, yf, Xe
 
 
+def progress(study, trial):
+    if (trial.number + 1) % 10 == 0:
+        print(f"  trial {trial.number + 1}: best validation PR-AUC {study.best_value:.4f}", flush=True)
+
+
 def run(X, y, amount_col, tr, va, te, model, imb, seed, trials, tune_rows=None, fixed=None):
     """Tune on (tr, va), refit on tr+va, score te. `fixed` = (params, n_iter) skips tuning."""
     M = MODELS[model]
@@ -65,7 +70,7 @@ def run(X, y, amount_col, tr, va, te, model, imb, seed, trials, tune_rows=None, 
         study = optuna.create_study(
             direction="maximize", sampler=optuna.samplers.TPESampler(seed=seed)
         )
-        study.optimize(objective, n_trials=trials)
+        study.optimize(objective, n_trials=trials, callbacks=[progress] if trials >= 10 else [])
         params, n_iter = study.best_params, study.best_trial.user_attrs["n_iter"]
         info.update(val_pr_auc=study.best_value, tune_seconds=time.time() - t0)
     else:
@@ -107,6 +112,9 @@ def jobs(args, ds):
             for f, proto, tr, va, te in splits.cv_folds(ds.y, seed):
                 yield (f"{proto}_f{f}", "weight", seed, tr, va, te)
         elif args.exp == "smote":
+            # "weight" repeats the class-weight baseline; only needed with --max-rows,
+            # otherwise the runs of the main experiment are the same.
+            yield ("random", "weight", seed) + splits.random_split(ds.y, seed)
             yield ("random", "smote", seed) + splits.random_split(ds.y, seed)
             yield ("random", "smote_leaky", seed, None, None, None)
 

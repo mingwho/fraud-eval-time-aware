@@ -18,6 +18,7 @@ import numpy as np
 from sklearn.metrics import average_precision_score
 
 THREADS = int(os.environ.get("N_THREADS", os.cpu_count()))
+MLP_DEVICE = os.environ.get("MLP_DEVICE", "cpu")  # "mps" or "cuda" to train the MLP on a GPU
 
 
 class DensePrep:
@@ -116,7 +117,7 @@ class RF:
 # ---------------------------------------------------------------- XGBoost
 class XGB:
     dense = False
-    MAX_ROUNDS = 2000
+    MAX_ROUNDS = 1000
 
     @staticmethod
     def suggest(trial, weighted):
@@ -159,7 +160,7 @@ class XGB:
 # ---------------------------------------------------------------- LightGBM
 class LGBM:
     dense = False
-    MAX_ROUNDS = 2000
+    MAX_ROUNDS = 1000
 
     @staticmethod
     def suggest(trial, weighted):
@@ -234,19 +235,19 @@ class MLP:
         for _ in range(params["depth"]):
             layers += [nn.Linear(d, params["width"]), nn.ReLU(), nn.Dropout(params["dropout"])]
             d = params["width"]
-        net = nn.Sequential(*layers, nn.Linear(d, 1))
+        net = nn.Sequential(*layers, nn.Linear(d, 1)).to(MLP_DEVICE)
         opt = torch.optim.AdamW(
             net.parameters(), lr=params["lr"], weight_decay=params["weight_decay"]
         )
-        loss_fn = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(w))
-        X = torch.from_numpy(np.ascontiguousarray(Xtr))
-        y = torch.from_numpy(ytr.astype(np.float32))
+        loss_fn = nn.BCEWithLogitsLoss(pos_weight=torch.tensor(w, device=MLP_DEVICE))
+        X = torch.from_numpy(np.ascontiguousarray(Xtr)).to(MLP_DEVICE)
+        y = torch.from_numpy(ytr.astype(np.float32)).to(MLP_DEVICE)
         gen = torch.Generator().manual_seed(seed)
         best, best_epoch, best_state = -1.0, 0, None
         epochs = MLP.MAX_EPOCHS if Xval is not None else n_iter
         for epoch in range(1, epochs + 1):
             net.train()
-            perm = torch.randperm(len(y), generator=gen)
+            perm = torch.randperm(len(y), generator=gen).to(MLP_DEVICE)
             for i in range(0, len(y), MLP.BATCH):
                 b = perm[i : i + MLP.BATCH]
                 opt.zero_grad()
@@ -271,10 +272,10 @@ class MLP:
         net.eval()
         with torch.no_grad():
             out = [
-                torch.sigmoid(net(torch.from_numpy(np.ascontiguousarray(X[i : i + 65536]))))
+                torch.sigmoid(net(torch.from_numpy(np.ascontiguousarray(X[i : i + 65536])).to(MLP_DEVICE)))
                 for i in range(0, len(X), 65536)
             ]
-        return torch.cat(out).squeeze(1).numpy()
+        return torch.cat(out).squeeze(1).cpu().numpy()
 
 
 MODELS = {"lr": LR, "rf": RF, "xgb": XGB, "lgbm": LGBM, "mlp": MLP}

@@ -1,0 +1,18 @@
+\begin{table}[t]
+\caption{Oversampling leak under a random split. ``As reported'' scores the flawed pipeline on its own oversampled test set; ``real test rows'' scores the same models on the genuine transactions of that test set. Mean over 5 seeds.}
+\label{tab:smote}
+\small
+\begin{tabular}{llrrrrrrrr}
+\toprule
+ &  & \multicolumn{2}{c}{Class weights} & \multicolumn{2}{c}{SMOTE on training rows} & \multicolumn{2}{c}{SMOTE before split, as reported} & \multicolumn{2}{c}{SMOTE before split, real test rows} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
+Dataset & Model & PR-AUC & F1 & PR-AUC & F1 & PR-AUC & F1 & PR-AUC & F1 \\
+\midrule
+ULB & Logistic regression & 0.762 & 0.776 & 0.761 & 0.110 & 0.990 & 0.943 & 0.742 & 0.112 \\
+ & Random forest & 0.851 & 0.851 & 0.856 & 0.718 & 1.000 & 1.000 & 0.986 & 0.855 \\
+ & XGBoost & 0.856 & 0.854 & 0.867 & 0.787 & 1.000 & 1.000 & 0.994 & 0.898 \\
+ & LightGBM & 0.859 & 0.856 & 0.854 & 0.729 & 1.000 & 1.000 & 0.890 & 0.846 \\
+ & MLP & 0.845 & 0.768 & 0.842 & 0.775 & 1.000 & 1.000 & 0.993 & 0.869 \\
+\bottomrule
+\end{tabular}
+\end{table}

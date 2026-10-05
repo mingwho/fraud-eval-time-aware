@@ -384,7 +384,7 @@ def figure_time(df):
     roll["x"] = roll.protocol.str[-1].astype(int) + 4
     wk = weekly_frame(df).rename(columns={"protocol": "split", "week": "x"})
     models = [m for m in MODELS if (roll.model == m).any() and (wk.model == m).any()]
-    fig, axes = plt.subplots(2, len(models), figsize=(7.0, 3.9), sharey=True, squeeze=False)
+    fig, axes = plt.subplots(2, len(models), figsize=(7.0, 3.5), sharey=True, squeeze=False)
     rows = [(roll, [4, 5, 6], (3.7, 6.3), "Test month (model trained on the three months before it)"),
             (wk, list(range(1, 7)), (0.6, 6.4), "Week of the final 20% of the timeline")]
     for r, (frame, ticks, xlim, xlabel) in enumerate(rows):

@@ -1,89 +1,89 @@
 == ieee: n=590540 fraud=20663 rate=0.03499 days=182.0 features=431 chrono-test fraud rate=0.03441 (n_fraud=4064) first-80% rate=0.03514
 -- pr_auc
-lr    random 0.4742+-0.0057 chrono 0.3602+-0.0006 gap -0.1140 rel -24.0% | period-matched random 0.4318+-0.0065 | boot CI of gap [-0.1235, -0.1045]
-rf    random 0.7271+-0.0063 chrono 0.5231+-0.0038 gap -0.2040 rel -28.1% | period-matched random 0.7255+-0.0088 | boot CI of gap [-0.2126, -0.1953]
-xgb   random 0.8648+-0.0060 chrono 0.5939+-0.0050 gap -0.2709 rel -31.3% | period-matched random 0.8713+-0.0048 | boot CI of gap [-0.2830, -0.2589]
-lgbm  random 0.8684+-0.0070 chrono 0.5975+-0.0011 gap -0.2708 rel -31.2% | period-matched random 0.8701+-0.0037 | boot CI of gap [-0.2798, -0.2618]
-mlp   random 0.7129+-0.0090 chrono 0.4521+-0.0137 gap -0.2608 rel -36.6% | period-matched random 0.7143+-0.0096 | boot CI of gap [-0.2702, -0.2519]
-rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 1.00; mean gap -0.2241
+lr    random 0.4742+-0.0057 chrono 0.3602+-0.0006 gap -0.1140 rel -24.0% | period-matched random 0.4318+-0.0065 | boot CI of gap [-0.1231, -0.1044]
+rf    random 0.7271+-0.0063 chrono 0.5231+-0.0038 gap -0.2040 rel -28.1% | period-matched random 0.7255+-0.0088 | boot CI of gap [-0.2129, -0.1951]
+xgb   random 0.8638+-0.0060 chrono 0.5938+-0.0030 gap -0.2700 rel -31.3% | period-matched random 0.8683+-0.0056 | boot CI of gap [-0.2776, -0.2613]
+lgbm  random 0.8658+-0.0065 chrono 0.5961+-0.0028 gap -0.2697 rel -31.1% | period-matched random 0.8704+-0.0059 | boot CI of gap [-0.2780, -0.2615]
+mlp   random 0.7129+-0.0090 chrono 0.4521+-0.0137 gap -0.2608 rel -36.6% | period-matched random 0.7143+-0.0096 | boot CI of gap [-0.2706, -0.2515]
+rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 1.00; mean gap -0.2237
 -- roc_auc
 lr    random 0.8652+-0.0045 chrono 0.8399+-0.0006 gap -0.0252 rel -2.9%
 rf    random 0.9420+-0.0025 chrono 0.8996+-0.0011 gap -0.0424 rel -4.5%
-xgb   random 0.9730+-0.0013 chrono 0.9139+-0.0052 gap -0.0591 rel -6.1%
-lgbm  random 0.9744+-0.0009 chrono 0.9224+-0.0006 gap -0.0520 rel -5.3%
+xgb   random 0.9719+-0.0019 chrono 0.9162+-0.0041 gap -0.0557 rel -5.7%
+lgbm  random 0.9732+-0.0017 chrono 0.9217+-0.0016 gap -0.0516 rel -5.3%
 mlp   random 0.9318+-0.0042 chrono 0.8571+-0.0072 gap -0.0747 rel -8.0%
-rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 1.00; mean gap -0.0507
+rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 1.00; mean gap -0.0499
 -- recall@0.005
 lr    random 0.1375+-0.0006 chrono 0.1103+-0.0005 gap -0.0272 rel -19.8%
 rf    random 0.1422+-0.0004 chrono 0.1340+-0.0016 gap -0.0082 rel -5.7%
-xgb   random 0.1428+-0.0001 chrono 0.1368+-0.0010 gap -0.0060 rel -4.2%
-lgbm  random 0.1429+-0.0001 chrono 0.1382+-0.0011 gap -0.0047 rel -3.3%
+xgb   random 0.1429+-0.0001 chrono 0.1371+-0.0008 gap -0.0058 rel -4.1%
+lgbm  random 0.1429+-0.0001 chrono 0.1381+-0.0008 gap -0.0048 rel -3.4%
 mlp   random 0.1426+-0.0002 chrono 0.1312+-0.0046 gap -0.0114 rel -8.0%
 rank random {'lgbm': 1, 'lr': 5, 'mlp': 3, 'rf': 4, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 0.80; mean gap -0.0115
 -- value_recall@0.005
 lr    random 0.0846+-0.0048 chrono 0.0675+-0.0005 gap -0.0171 rel -20.2%
 rf    random 0.0825+-0.0039 chrono 0.0692+-0.0015 gap -0.0134 rel -16.2%
-xgb   random 0.1022+-0.0012 chrono 0.0860+-0.0003 gap -0.0162 rel -15.9%
-lgbm  random 0.1027+-0.0017 chrono 0.0828+-0.0017 gap -0.0198 rel -19.3%
+xgb   random 0.1041+-0.0045 chrono 0.0858+-0.0005 gap -0.0183 rel -17.6%
+lgbm  random 0.1001+-0.0048 chrono 0.0835+-0.0024 gap -0.0166 rel -16.6%
 mlp   random 0.1151+-0.0041 chrono 0.0848+-0.0058 gap -0.0302 rel -26.3%
-rank random {'lgbm': 2, 'lr': 4, 'mlp': 1, 'rf': 5, 'xgb': 3} chrono {'lgbm': 3, 'lr': 5, 'mlp': 2, 'rf': 4, 'xgb': 1} kendall tau 0.40; mean gap -0.0194
+rank random {'lgbm': 3, 'lr': 4, 'mlp': 1, 'rf': 5, 'xgb': 2} chrono {'lgbm': 3, 'lr': 5, 'mlp': 2, 'rf': 4, 'xgb': 1} kendall tau 0.60; mean gap -0.0191
 -- precision@0.005
 lr    random 0.9618+-0.0044 chrono 0.7587+-0.0035 gap -0.2030 rel -21.1%
 rf    random 0.9942+-0.0026 chrono 0.9215+-0.0109 gap -0.0728 rel -7.3%
-xgb   random 0.9989+-0.0010 chrono 0.9408+-0.0072 gap -0.0581 rel -5.8%
-lgbm  random 0.9994+-0.0010 chrono 0.9504+-0.0076 gap -0.0491 rel -4.9%
+xgb   random 0.9990+-0.0009 chrono 0.9425+-0.0054 gap -0.0565 rel -5.7%
+lgbm  random 0.9997+-0.0008 chrono 0.9499+-0.0056 gap -0.0497 rel -5.0%
 mlp   random 0.9973+-0.0015 chrono 0.9022+-0.0319 gap -0.0951 rel -9.5%
-rank random {'lgbm': 1, 'lr': 5, 'mlp': 3, 'rf': 4, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 0.80; mean gap -0.0956
+rank random {'lgbm': 1, 'lr': 5, 'mlp': 3, 'rf': 4, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 0.80; mean gap -0.0954
 -- recall@0.01
 lr    random 0.2488+-0.0025 chrono 0.1969+-0.0006 gap -0.0519 rel -20.9%
 rf    random 0.2806+-0.0018 chrono 0.2498+-0.0011 gap -0.0309 rel -11.0%
-xgb   random 0.2853+-0.0001 chrono 0.2630+-0.0028 gap -0.0223 rel -7.8%
-lgbm  random 0.2857+-0.0002 chrono 0.2632+-0.0006 gap -0.0225 rel -7.9%
+xgb   random 0.2853+-0.0002 chrono 0.2630+-0.0018 gap -0.0223 rel -7.8%
+lgbm  random 0.2857+-0.0003 chrono 0.2628+-0.0009 gap -0.0229 rel -8.0%
 mlp   random 0.2831+-0.0003 chrono 0.2324+-0.0113 gap -0.0507 rel -17.9%
-rank random {'lgbm': 1, 'lr': 5, 'mlp': 3, 'rf': 4, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 0.80; mean gap -0.0357
+rank random {'lgbm': 1, 'lr': 5, 'mlp': 3, 'rf': 4, 'xgb': 2} chrono {'lgbm': 2, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 1} kendall tau 0.60; mean gap -0.0357
 -- value_recall@0.01
 lr    random 0.1641+-0.0071 chrono 0.1329+-0.0013 gap -0.0312 rel -19.0%
 rf    random 0.1852+-0.0101 chrono 0.1510+-0.0041 gap -0.0341 rel -18.4%
-xgb   random 0.2121+-0.0040 chrono 0.1819+-0.0007 gap -0.0302 rel -14.2%
-lgbm  random 0.2143+-0.0023 chrono 0.1769+-0.0030 gap -0.0374 rel -17.5%
+xgb   random 0.2209+-0.0124 chrono 0.1817+-0.0008 gap -0.0392 rel -17.7%
+lgbm  random 0.2136+-0.0098 chrono 0.1795+-0.0061 gap -0.0342 rel -16.0%
 mlp   random 0.2184+-0.0067 chrono 0.1610+-0.0113 gap -0.0574 rel -26.3%
-rank random {'lgbm': 2, 'lr': 5, 'mlp': 1, 'rf': 4, 'xgb': 3} chrono {'lgbm': 2, 'lr': 5, 'mlp': 3, 'rf': 4, 'xgb': 1} kendall tau 0.40; mean gap -0.0381
+rank random {'lgbm': 3, 'lr': 5, 'mlp': 2, 'rf': 4, 'xgb': 1} chrono {'lgbm': 2, 'lr': 5, 'mlp': 3, 'rf': 4, 'xgb': 1} kendall tau 0.80; mean gap -0.0392
 -- precision@0.01
 lr    random 0.8699+-0.0088 chrono 0.6770+-0.0019 gap -0.1929 rel -22.2%
 rf    random 0.9812+-0.0064 chrono 0.8587+-0.0036 gap -0.1225 rel -12.5%
-xgb   random 0.9977+-0.0005 chrono 0.9044+-0.0096 gap -0.0933 rel -9.4%
-lgbm  random 0.9992+-0.0008 chrono 0.9050+-0.0020 gap -0.0942 rel -9.4%
+xgb   random 0.9975+-0.0006 chrono 0.9042+-0.0060 gap -0.0933 rel -9.4%
+lgbm  random 0.9988+-0.0010 chrono 0.9036+-0.0032 gap -0.0953 rel -9.5%
 mlp   random 0.9898+-0.0010 chrono 0.7990+-0.0388 gap -0.1909 rel -19.3%
-rank random {'lgbm': 1, 'lr': 5, 'mlp': 3, 'rf': 4, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 0.80; mean gap -0.1388
+rank random {'lgbm': 1, 'lr': 5, 'mlp': 3, 'rf': 4, 'xgb': 2} chrono {'lgbm': 2, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 1} kendall tau 0.60; mean gap -0.1390
 -- recall@0.05
 lr    random 0.5142+-0.0051 chrono 0.4539+-0.0005 gap -0.0603 rel -11.7%
 rf    random 0.7402+-0.0080 chrono 0.5696+-0.0061 gap -0.1706 rel -23.0%
-xgb   random 0.8571+-0.0054 chrono 0.6359+-0.0026 gap -0.2211 rel -25.8%
-lgbm  random 0.8584+-0.0060 chrono 0.6358+-0.0027 gap -0.2225 rel -25.9%
+xgb   random 0.8552+-0.0057 chrono 0.6352+-0.0021 gap -0.2200 rel -25.7%
+lgbm  random 0.8571+-0.0059 chrono 0.6341+-0.0032 gap -0.2229 rel -26.0%
 mlp   random 0.7140+-0.0107 chrono 0.5203+-0.0084 gap -0.1937 rel -27.1%
-rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 2, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 1} kendall tau 0.80; mean gap -0.1736
+rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 2, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 1} kendall tau 0.80; mean gap -0.1735
 -- value_recall@0.05
 lr    random 0.4539+-0.0123 chrono 0.4055+-0.0014 gap -0.0484 rel -10.7%
 rf    random 0.7036+-0.0059 chrono 0.5560+-0.0066 gap -0.1475 rel -21.0%
-xgb   random 0.8174+-0.0113 chrono 0.5938+-0.0179 gap -0.2235 rel -27.3%
-lgbm  random 0.8240+-0.0107 chrono 0.6126+-0.0057 gap -0.2114 rel -25.7%
+xgb   random 0.8192+-0.0093 chrono 0.6013+-0.0139 gap -0.2179 rel -26.6%
+lgbm  random 0.8214+-0.0084 chrono 0.6090+-0.0065 gap -0.2124 rel -25.9%
 mlp   random 0.6618+-0.0188 chrono 0.5149+-0.0202 gap -0.1469 rel -22.2%
-rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 1.00; mean gap -0.1556
+rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} kendall tau 1.00; mean gap -0.1546
 -- precision@0.05
 lr    random 0.3598+-0.0036 chrono 0.3123+-0.0004 gap -0.0475 rel -13.2%
 rf    random 0.5180+-0.0056 chrono 0.3920+-0.0042 gap -0.1260 rel -24.3%
-xgb   random 0.5998+-0.0038 chrono 0.4376+-0.0018 gap -0.1622 rel -27.0%
-lgbm  random 0.6007+-0.0042 chrono 0.4375+-0.0019 gap -0.1632 rel -27.2%
+xgb   random 0.5985+-0.0040 chrono 0.4371+-0.0014 gap -0.1614 rel -27.0%
+lgbm  random 0.5998+-0.0042 chrono 0.4363+-0.0022 gap -0.1634 rel -27.2%
 mlp   random 0.4997+-0.0075 chrono 0.3580+-0.0058 gap -0.1417 rel -28.3%
-rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 2, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 1} kendall tau 0.80; mean gap -0.1281
-period-matched test: n=23665 n_fraud=810.9
+rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 2, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 1} kendall tau 0.80; mean gap -0.1280
+period-matched test: n=23656 n_fraud=810.8
 == ulb: n=284807 fraud=492 rate=0.00173 days=2.0 features=29 chrono-test fraud rate=0.00132 (n_fraud=75) first-80% rate=0.00183
 -- pr_auc
-lr    random 0.7622+-0.0420 chrono 0.7865+-0.0001 gap +0.0243 rel +3.2% | period-matched random 0.7623+-0.1380 | boot CI of gap [-0.0328, +0.0768]
-rf    random 0.8514+-0.0227 chrono 0.7966+-0.0095 gap -0.0548 rel -6.4% | period-matched random 0.7706+-0.1151 | boot CI of gap [-0.1077, -0.0065]
-xgb   random 0.8555+-0.0363 chrono 0.7961+-0.0126 gap -0.0594 rel -6.9% | period-matched random 0.7652+-0.1225 | boot CI of gap [-0.1111, -0.0126]
-lgbm  random 0.8586+-0.0273 chrono 0.7806+-0.0183 gap -0.0780 rel -9.1% | period-matched random 0.7530+-0.1251 | boot CI of gap [-0.1296, -0.0273]
-mlp   random 0.8449+-0.0163 chrono 0.8113+-0.0132 gap -0.0336 rel -4.0% | period-matched random 0.7752+-0.0713 | boot CI of gap [-0.0870, +0.0140]
+lr    random 0.7622+-0.0420 chrono 0.7865+-0.0001 gap +0.0243 rel +3.2% | period-matched random 0.7623+-0.1380 | boot CI of gap [-0.0341, +0.0788]
+rf    random 0.8514+-0.0227 chrono 0.7966+-0.0095 gap -0.0548 rel -6.4% | period-matched random 0.7706+-0.1151 | boot CI of gap [-0.1080, -0.0076]
+xgb   random 0.8555+-0.0363 chrono 0.7961+-0.0126 gap -0.0594 rel -6.9% | period-matched random 0.7652+-0.1225 | boot CI of gap [-0.1077, -0.0169]
+lgbm  random 0.8586+-0.0273 chrono 0.7806+-0.0183 gap -0.0780 rel -9.1% | period-matched random 0.7530+-0.1251 | boot CI of gap [-0.1303, -0.0271]
+mlp   random 0.8449+-0.0163 chrono 0.8113+-0.0132 gap -0.0336 rel -4.0% | period-matched random 0.7752+-0.0713 | boot CI of gap [-0.0786, +0.0184]
 rank random {'lgbm': 1, 'lr': 5, 'mlp': 4, 'rf': 3, 'xgb': 2} chrono {'lgbm': 5, 'lr': 4, 'mlp': 1, 'rf': 2, 'xgb': 3} kendall tau -0.40; mean gap -0.0403
 -- roc_auc
 lr    random 0.9828+-0.0068 chrono 0.9857+-0.0000 gap +0.0029 rel +0.3%
@@ -189,6 +189,11 @@ dataset model  block  random_folds  time_block  n_fraud    drop
    ieee   mlp      3        0.7141      0.5247     4430  0.1894
    ieee   mlp      4        0.7291      0.5475     4611  0.1816
    ieee   mlp      5        0.7171      0.4659     4064  0.2512
+   ieee    rf      1        0.6413      0.4311     2826  0.2102
+   ieee    rf      2        0.7427      0.5927     4732  0.1501
+   ieee    rf      3        0.7362      0.5923     4430  0.1439
+   ieee    rf      4        0.7574      0.6062     4611  0.1512
+   ieee    rf      5        0.7260      0.5232     4064  0.2028
     ulb  lgbm      1        0.9287      0.8496      157  0.0791
     ulb  lgbm      2        0.8056      0.8054       84  0.0002
     ulb  lgbm      3        0.8423      0.7490      119  0.0932
@@ -199,6 +204,11 @@ dataset model  block  random_folds  time_block  n_fraud    drop
     ulb    lr      3        0.8502      0.8423      119  0.0078
     ulb    lr      4        0.7988      0.7721       57  0.0267
     ulb    lr      5        0.7644      0.7989       75 -0.0345
+    ulb   mlp      1        0.8766      0.7402      157  0.1363
+    ulb   mlp      2        0.8006      0.7151       84  0.0855
+    ulb   mlp      3        0.8648      0.8260      119  0.0388
+    ulb   mlp      4        0.7886      0.7241       57  0.0645
+    ulb   mlp      5        0.8057      0.7892       75  0.0165
     ulb    rf      1        0.9108      0.7338      157  0.1770
     ulb    rf      2        0.7976      0.8064       84 -0.0087
     ulb    rf      3        0.8657      0.8360      119  0.0296
@@ -211,16 +221,16 @@ dataset model  block  random_folds  time_block  n_fraud    drop
     ulb   xgb      5        0.7832      0.7997       75 -0.0166
                random_folds  time_block    drop  n_fraud
 dataset block                                           
-ieee    1            0.5180      0.3517  0.1663   2826.0
-        2            0.6155      0.5062  0.1093   4732.0
-        3            0.5954      0.4813  0.1141   4430.0
-        4            0.6238      0.5107  0.1131   4611.0
-        5            0.5725      0.4129  0.1596   4064.0
-ulb     1            0.8876      0.7693  0.1183    157.0
-        2            0.7903      0.7935 -0.0032     84.0
-        3            0.8540      0.8082  0.0457    119.0
-        4            0.8070      0.7598  0.0472     57.0
-        5            0.7875      0.8026 -0.0150     75.0
+ieee    1            0.5591      0.3782  0.1810   2826.0
+        2            0.6579      0.5350  0.1229   4732.0
+        3            0.6423      0.5183  0.1241   4430.0
+        4            0.6683      0.5425  0.1258   4611.0
+        5            0.6237      0.4497  0.1740   4064.0
+ulb     1            0.8854      0.7635  0.1219    157.0
+        2            0.7924      0.7778  0.0145     84.0
+        3            0.8561      0.8118  0.0444    119.0
+        4            0.8034      0.7527  0.0507     57.0
+        5            0.7912      0.7999 -0.0087     75.0
 == cv (per-fold PR-AUC)
                        pr_auc         roc_auc         recall@0.01        
                          mean     std    mean     std        mean     std
@@ -229,11 +239,14 @@ ieee    lr    blockcv  0.4100  0.0706  0.8469  0.0151      0.2251  0.0179
               randcv   0.4689  0.0099  0.8637  0.0031      0.2468  0.0046
         mlp   blockcv  0.4951  0.0672  0.8569  0.0265      0.2518  0.0233
               randcv   0.7095  0.0038  0.9325  0.0025      0.2830  0.0005
+        rf    blockcv  0.5491  0.0735  0.9074  0.0129      0.2531  0.0270
+              randcv   0.7265  0.0054  0.9443  0.0015      0.2800  0.0009
 ulb     lgbm  blockcv  0.7867  0.0484  0.9646  0.0279      0.8747  0.0498
               randcv   0.8459  0.0161  0.9835  0.0058      0.8984  0.0188
         lr    blockcv  0.7753  0.0441  0.9770  0.0133      0.8508  0.0577
               randcv   0.7520  0.0372  0.9786  0.0051      0.8781  0.0258
         mlp   blockcv  0.7623  0.0438  0.9694  0.0244      0.8650  0.0524
+              randcv   0.8351  0.0439  0.9768  0.0102      0.8882  0.0303
         rf    blockcv  0.7902  0.0408  0.9722  0.0180      0.8863  0.0436
               randcv   0.8505  0.0256  0.9702  0.0076      0.8882  0.0267
         xgb   blockcv  0.7923  0.0192  0.9791  0.0141      0.8799  0.0559
@@ -243,10 +256,10 @@ ulb     lgbm  blockcv  0.7867  0.0484  0.9646  0.0279      0.8747  0.0498
 dataset protocol imb         model                                                                                                                   
 ieee    random   smote       lr     0.4487   0.8603       0.2275             0.1415     0.2336              NaN               NaN                 NaN
                              mlp    0.5627   0.8756       0.2686             0.2001     0.4480              NaN               NaN                 NaN
-                             rf     0.5919   0.9107       0.2589             0.1659     0.5742              NaN               NaN                 NaN
+                             rf     0.5985   0.9118       0.2598             0.1621     0.5782              NaN               NaN                 NaN
                  smote_leaky lr     0.4555   0.8687       0.2242             0.1414     0.2415           0.8911            0.8791              0.7888
                              mlp    0.9262   0.9971       0.2702             0.2092     0.7969           0.9980            0.9984              0.9865
-                             rf     0.7513   0.9685       0.2625             0.1622     0.6981           0.9984            0.9982              0.9846
+                             rf     0.7513   0.9683       0.2630             0.1647     0.6982           0.9984            0.9983              0.9848
                  weight      lr     0.4756   0.8614       0.2422             0.1503     0.4422              NaN               NaN                 NaN
                              mlp    0.6058   0.8945       0.2712             0.1896     0.5892              NaN               NaN                 NaN
                              rf     0.6766   0.9247       0.2721             0.1808     0.6294              NaN               NaN                 NaN
@@ -265,10 +278,10 @@ std
 dataset protocol imb         model                                                                                                                   
 ieee    random   smote       lr     0.0110   0.0044       0.0060             0.0146     0.0009              NaN               NaN                 NaN
                              mlp    0.0092   0.0107       0.0029             0.0029     0.0738              NaN               NaN                 NaN
-                             rf     0.0069   0.0038       0.0015             0.0040     0.0104              NaN               NaN                 NaN
+                             rf     0.0124   0.0033       0.0018             0.0071     0.0101              NaN               NaN                 NaN
                  smote_leaky lr     0.0081   0.0017       0.0026             0.0040     0.0016           0.0014            0.0016              0.0023
                              mlp    0.0073   0.0005       0.0032             0.0203     0.0252           0.0003            0.0003              0.0023
-                             rf     0.0032   0.0015       0.0025             0.0101     0.0029           0.0001            0.0001              0.0005
+                             rf     0.0023   0.0011       0.0020             0.0084     0.0020           0.0001            0.0001              0.0005
                  weight      lr     0.0097   0.0052       0.0059             0.0134     0.0131              NaN               NaN                 NaN
                              mlp    0.0128   0.0042       0.0031             0.0087     0.0168              NaN               NaN                 NaN
                              rf     0.0166   0.0034       0.0028             0.0096     0.0140              NaN               NaN                 NaN
@@ -311,28 +324,33 @@ ulb     chrono   weight lgbm   0.0024   0.0010       0.0202             0.0293  
 == gap
                                  pr_auc  roc_auc  recall@0.01  value_recall@0.01  f1_at_0.5
 dataset protocol   imb    model                                                            
-ieee    chrono_gap weight lr     0.3519   0.8373       0.1954             0.1322     0.3546
+ieee    chrono_gap weight lgbm   0.5789   0.9170       0.2612             0.1712     0.5290
+                          lr     0.3519   0.8373       0.1954             0.1322     0.3546
                           mlp    0.4360   0.8434       0.2292             0.1520     0.4136
                           rf     0.5094   0.8936       0.2492             0.1414     0.5088
 std
                                  pr_auc  roc_auc  recall@0.01  value_recall@0.01  f1_at_0.5
 dataset protocol   imb    model                                                            
-ieee    chrono_gap weight lr     0.0012   0.0014       0.0004             0.0007     0.0032
+ieee    chrono_gap weight lgbm   0.0032   0.0015       0.0011             0.0041     0.0132
+                          lr     0.0012   0.0014       0.0004             0.0007     0.0032
                           mlp    0.0108   0.0087       0.0080             0.0148     0.0242
                           rf     0.0034   0.0023       0.0011             0.0022     0.0049
 == rolling
                                 pr_auc  roc_auc  recall@0.01  value_recall@0.01  f1_at_0.5
 dataset protocol  imb    model                                                            
-ieee    chrono_w0 weight lr     0.4352   0.8465       0.2157             0.1109     0.3888
+ieee    chrono_w0 weight lgbm   0.6006   0.9187       0.2390             0.1273     0.5285
+                         lr     0.4352   0.8465       0.2157             0.1109     0.3888
                          mlp    0.4786   0.8363       0.2297             0.1271     0.4787
                          rf     0.5560   0.8993       0.2312             0.1238     0.5215
-        chrono_w1 weight lr     0.4152   0.8547       0.2198             0.1197     0.4291
+        chrono_w1 weight lgbm   0.5995   0.9187       0.2755             0.1980     0.5445
+                         lr     0.4152   0.8547       0.2198             0.1197     0.4291
                          mlp    0.4715   0.8578       0.2545             0.1774     0.4651
                          rf     0.5296   0.9079       0.2615             0.1520     0.5068
         chrono_w2 weight lr     0.3957   0.8425       0.2191             0.1383     0.3906
                          mlp    0.4999   0.8653       0.2459             0.1631     0.5016
                          rf     0.5413   0.9018       0.2472             0.1362     0.5481
-        random_w0 weight lr     0.4846   0.8693       0.2489             0.1727     0.4408
+        random_w0 weight lgbm   0.8501   0.9694       0.2832             0.2355     0.8008
+                         lr     0.4846   0.8693       0.2489             0.1727     0.4408
                          mlp    0.6847   0.9218       0.2812             0.2166     0.6620
                          rf     0.7256   0.9423       0.2778             0.2062     0.6900
         random_w1 weight lr     0.5068   0.8749       0.2361             0.1549     0.4603
@@ -344,16 +362,19 @@ ieee    chrono_w0 weight lr     0.4352   0.8465       0.2157             0.1109 
 std
                                 pr_auc  roc_auc  recall@0.01  value_recall@0.01  f1_at_0.5
 dataset protocol  imb    model                                                            
-ieee    chrono_w0 weight lr        NaN      NaN          NaN                NaN        NaN
+ieee    chrono_w0 weight lgbm      NaN      NaN          NaN                NaN        NaN
+                         lr        NaN      NaN          NaN                NaN        NaN
                          mlp       NaN      NaN          NaN                NaN        NaN
                          rf        NaN      NaN          NaN                NaN        NaN
-        chrono_w1 weight lr        NaN      NaN          NaN                NaN        NaN
+        chrono_w1 weight lgbm      NaN      NaN          NaN                NaN        NaN
+                         lr        NaN      NaN          NaN                NaN        NaN
                          mlp       NaN      NaN          NaN                NaN        NaN
                          rf        NaN      NaN          NaN                NaN        NaN
         chrono_w2 weight lr        NaN      NaN          NaN                NaN        NaN
                          mlp       NaN      NaN          NaN                NaN        NaN
                          rf        NaN      NaN          NaN                NaN        NaN
-        random_w0 weight lr        NaN      NaN          NaN                NaN        NaN
+        random_w0 weight lgbm      NaN      NaN          NaN                NaN        NaN
+                         lr        NaN      NaN          NaN                NaN        NaN
                          mlp       NaN      NaN          NaN                NaN        NaN
                          rf        NaN      NaN          NaN                NaN        NaN
         random_w1 weight lr        NaN      NaN          NaN                NaN        NaN

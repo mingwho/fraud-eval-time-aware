@@ -5,15 +5,15 @@ The study is one grid: every model is trained and tested under every split proto
 
 \subsection{Datasets}
 
-We use the two public payment-fraud datasets that carry a timestamp, which a chronological split requires. Table~\ref{tab:data} summarises them.
+We use two public payment-fraud datasets that carry a timestamp, which a chronological split requires. Table~\ref{tab:data} summarises them.
 
 \textbf{IEEE-CIS} is the labelled portion of the data released by Vesta Corporation for the IEEE-CIS Fraud Detection competition~\cite{ieeecis2019fraud}: card-not-present e-commerce transactions covering about six months. Each transaction has an amount, a time offset in seconds, and several hundred anonymised card, address, device, counting and vendor-engineered columns. It is our main dataset because it is large, spans months, and has enough fraud cases to give stable estimates.
 
-\textbf{ULB} is the credit card dataset released by the Machine Learning Group of Universit\'e Libre de Bruxelles~\cite{dalpozzolo2015calibrating}: two days of transactions by European cardholders, described by 28 principal components, the amount and a time offset. It is short and has few fraud cases, which makes every estimate on it noisy, but it is the most widely used benchmark, so an inflation result on it bears on many published papers.
+\textbf{ULB} is the credit card dataset released by the Machine Learning Group of Universit\'e Libre de Bruxelles~\cite{dalpozzolo2015calibrating}: two days of transactions by European cardholders, described by 28 principal components, the amount and a time offset. It is short and has few fraud cases, which makes every estimate on it noisy, but it is one of the most widely used benchmarks, so a result on it bears on many published papers.
 
 \input{generated/table_data}
 
-Feature engineering is deliberately minimal, because the subject is evaluation rather than leaderboard performance. We use the raw columns. Categorical columns are replaced by integer codes assigned in lexicographic order, which uses neither labels nor frequencies. The timestamp orders the data but is \emph{not} given to the models as a feature: a raw timestamp lets a model trained on a random split memorise when fraud bursts occurred, and we did not want the headline comparison to depend on that. Section~\ref{sec:mechanism} reports what happens when it is included.
+Feature engineering is deliberately minimal, because the subject is evaluation rather than leaderboard performance. We use the raw columns. Categorical columns are replaced by integer codes assigned in lexicographic order, which uses neither labels nor frequencies. The timestamp orders the data but is \emph{not} given to the models as a feature: a raw timestamp could let a model trained on a random split memorise when fraud bursts occurred, and we did not want the headline comparison to depend on that. Section~\ref{sec:mechanism} reports what happens when it is included.
 
 \subsection{Split protocols}
 

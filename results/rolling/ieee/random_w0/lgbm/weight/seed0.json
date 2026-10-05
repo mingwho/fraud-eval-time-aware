@@ -1,0 +1,40 @@
+{
+ "val_pr_auc": 0.8292545335418852,
+ "tune_seconds": 2181.274668931961,
+ "params": {
+  "learning_rate": 0.04219989544886113,
+  "num_leaves": 172,
+  "min_child_samples": 50,
+  "subsample": 0.8415025969964911,
+  "colsample_bytree": 0.7594172366238872,
+  "reg_lambda": 1.5846306624360054,
+  "alpha": 0.5404292157914226
+ },
+ "n_iter": 1000,
+ "fit_seconds": 76.62421298027039,
+ "metrics": {
+  "n": 98305,
+  "n_fraud": 3467,
+  "prevalence": 0.03526778902395605,
+  "pr_auc": 0.8500541757299307,
+  "roc_auc": 0.9693897108334171,
+  "f1_at_0.5": 0.8008460787504068,
+  "recall@0.005": 0.14190943178540524,
+  "value_recall@0.005": 0.11394131685064689,
+  "precision@0.005": 1.0,
+  "recall@0.01": 0.28324199596192673,
+  "value_recall@0.01": 0.23552078050996658,
+  "precision@0.01": 0.9979674796747967,
+  "recall@0.05": 0.8422267089702913,
+  "value_recall@0.05": 0.8260441925219077,
+  "precision@0.05": 0.5939788445890968
+ },
+ "exp": "rolling",
+ "dataset": "ieee",
+ "protocol": "random_w0",
+ "model": "lgbm",
+ "imb": "weight",
+ "seed": 0,
+ "n_train": 319927,
+ "n_test": 98305
+}

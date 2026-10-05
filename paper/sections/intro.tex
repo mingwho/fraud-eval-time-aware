@@ -9,7 +9,7 @@ That random splits flatter fraud models has been noted before~\cite{grover2022fr
 Our contributions are as follows.
 \begin{itemize}[leftmargin=1.5em,itemsep=2pt]
 \item \textbf{A like-for-like measurement of split inflation.} On IEEE-CIS, moving from a random to a chronological split lowers \prauc{} by \num{ieee.min.rel.pr}--\num{ieee.max.rel.pr}\% for every model, consistently across rolling windows. We add controls that score both protocols on the same transactions, and they matter: they confirm that the IEEE-CIS gap is leakage, and they show that most of the apparent gap on ULB is a harder final period.
-\item \textbf{The oversampling leak, separated into its two parts.} We distinguish the artefact of scoring a rebalanced test set from genuine information flow. The second is large for flexible models and absent for logistic regression.
+\item \textbf{The oversampling leak, separated into its two parts.} We distinguish the artefact of scoring a rebalanced test set from genuine information flow. The second is present for every non-linear model, very large for some, and absent for logistic regression.
 \item \textbf{Metrics tied to an alert budget.} We report the share of fraud cases and of fraud value caught when a fixed share of transactions can be reviewed, and show where in the ranking the inflation sits.
 \item \textbf{An explanation and a checklist.} We trace the inflation to fraud episodes that span the split: the same card, minutes apart, on both sides. We condense the findings into a checklist for authors and reviewers, and release code that reproduces every number.
 \end{itemize}

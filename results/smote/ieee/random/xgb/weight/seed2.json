@@ -1,0 +1,40 @@
+{
+ "val_pr_auc": 0.757680872844696,
+ "tune_seconds": 1797.123543024063,
+ "params": {
+  "learning_rate": 0.08301573808468474,
+  "max_depth": 10,
+  "min_child_weight": 1.4871387892013792,
+  "subsample": 0.697904163438968,
+  "colsample_bytree": 0.8618643588207063,
+  "reg_lambda": 2.0018037611294988,
+  "alpha": 0.6864179363530565
+ },
+ "n_iter": 962,
+ "fit_seconds": 40.070263624191284,
+ "metrics": {
+  "n": 40000,
+  "n_fraud": 1427,
+  "prevalence": 0.035675,
+  "pr_auc": 0.7730648978782474,
+  "roc_auc": 0.9461828499774297,
+  "f1_at_0.5": 0.7316053511705686,
+  "recall@0.005": 0.13945339873861248,
+  "value_recall@0.005": 0.086016700639017,
+  "precision@0.005": 0.995,
+  "recall@0.01": 0.2782060266292922,
+  "value_recall@0.01": 0.2102030346883232,
+  "precision@0.01": 0.9925,
+  "recall@0.05": 0.7715487035739313,
+  "value_recall@0.05": 0.7108350571034036,
+  "precision@0.05": 0.5505
+ },
+ "exp": "smote",
+ "dataset": "ieee",
+ "protocol": "random",
+ "model": "xgb",
+ "imb": "weight",
+ "seed": 2,
+ "n_train": 160000,
+ "n_test": 40000
+}

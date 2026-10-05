@@ -1,0 +1,39 @@
+{
+ "val_pr_auc": 0.7481248935894956,
+ "tune_seconds": 1362.3484108448029,
+ "params": {
+  "learning_rate": 0.04476202490274293,
+  "num_leaves": 101,
+  "min_child_samples": 22,
+  "subsample": 0.7866993716444076,
+  "colsample_bytree": 0.7306027773435322,
+  "reg_lambda": 0.026695116644238508
+ },
+ "n_iter": 851,
+ "fit_seconds": 58.25433611869812,
+ "metrics": {
+  "n": 40000,
+  "n_fraud": 1427,
+  "prevalence": 0.035675,
+  "pr_auc": 0.7288444188997871,
+  "roc_auc": 0.9408040026981486,
+  "f1_at_0.5": 0.6577181208053692,
+  "recall@0.005": 0.13875262789067974,
+  "value_recall@0.005": 0.08904146243609351,
+  "precision@0.005": 0.99,
+  "recall@0.01": 0.2725998598458304,
+  "value_recall@0.01": 0.19067667598557636,
+  "precision@0.01": 0.9725,
+  "recall@0.05": 0.7323055360896986,
+  "value_recall@0.05": 0.6851169799947421,
+  "precision@0.05": 0.5225
+ },
+ "exp": "smote",
+ "dataset": "ieee",
+ "protocol": "random",
+ "model": "lgbm",
+ "imb": "smote",
+ "seed": 1,
+ "n_train": 160000,
+ "n_test": 40000
+}

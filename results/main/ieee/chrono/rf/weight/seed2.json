@@ -1,0 +1,34 @@
+{
+ "val_pr_auc": 0.5992825433240199,
+ "tune_seconds": 1255.8737461566925,
+ "params": {
+  "max_depth": 23,
+  "min_samples_leaf": 2,
+  "max_features": 0.19890653337919248,
+  "alpha": 0.7028536434068139
+ },
+ "n_iter": null,
+ "fit_seconds": 48.5118887424469,
+ "metrics": {
+  "n": 118109,
+  "n_fraud": 4064,
+  "prevalence": 0.034408893479751755,
+  "pr_auc": 0.5234089028883673,
+  "roc_auc": 0.9002838575945468,
+  "f1_at_0.5": 0.5131671595549923,
+  "recall@0.005": 0.13631889763779528,
+  "value_recall@0.005": 0.06859580536879302,
+  "precision@0.005": 0.937394247038917,
+  "recall@0.01": 0.24926181102362205,
+  "value_recall@0.01": 0.14420060621082986,
+  "precision@0.01": 0.8570219966159053
+ },
+ "exp": "main",
+ "dataset": "ieee",
+ "protocol": "chrono",
+ "model": "rf",
+ "imb": "weight",
+ "seed": 2,
+ "n_train": 472431,
+ "n_test": 118109
+}

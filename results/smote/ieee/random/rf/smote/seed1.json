@@ -1,0 +1,36 @@
+{
+ "val_pr_auc": 0.5916748669013479,
+ "tune_seconds": 782.9260110855103,
+ "params": {
+  "max_depth": 24,
+  "min_samples_leaf": 1,
+  "max_features": 0.06841204187292049
+ },
+ "n_iter": null,
+ "fit_seconds": 19.589228868484497,
+ "metrics": {
+  "n": 40000,
+  "n_fraud": 1427,
+  "prevalence": 0.035675,
+  "pr_auc": 0.5870359983599699,
+  "roc_auc": 0.9080105594701342,
+  "f1_at_0.5": 0.5668629100084104,
+  "recall@0.005": 0.13524877365101612,
+  "value_recall@0.005": 0.06868983233017438,
+  "precision@0.005": 0.965,
+  "recall@0.01": 0.25998598458304134,
+  "value_recall@0.01": 0.16305907846406092,
+  "precision@0.01": 0.9275,
+  "recall@0.05": 0.6180798878766643,
+  "value_recall@0.05": 0.5507189108581498,
+  "precision@0.05": 0.441
+ },
+ "exp": "smote",
+ "dataset": "ieee",
+ "protocol": "random",
+ "model": "rf",
+ "imb": "smote",
+ "seed": 1,
+ "n_train": 160000,
+ "n_test": 40000
+}

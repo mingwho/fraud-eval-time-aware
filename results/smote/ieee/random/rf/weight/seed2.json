@@ -1,0 +1,37 @@
+{
+ "val_pr_auc": 0.6663382177649263,
+ "tune_seconds": 860.5258800983429,
+ "params": {
+  "max_depth": 24,
+  "min_samples_leaf": 1,
+  "max_features": 0.19419019646155342,
+  "alpha": 0.6494694627814662
+ },
+ "n_iter": null,
+ "fit_seconds": 32.889511823654175,
+ "metrics": {
+  "n": 40000,
+  "n_fraud": 1427,
+  "prevalence": 0.035675,
+  "pr_auc": 0.6917630891811127,
+  "roc_auc": 0.9267947717367907,
+  "f1_at_0.5": 0.6417716022579244,
+  "recall@0.005": 0.1401541695865452,
+  "value_recall@0.005": 0.08825319128483723,
+  "precision@0.005": 1.0,
+  "recall@0.01": 0.2754029432375613,
+  "value_recall@0.01": 0.1733173319352888,
+  "precision@0.01": 0.9825,
+  "recall@0.05": 0.7028731604765242,
+  "value_recall@0.05": 0.6611852910932294,
+  "precision@0.05": 0.5015
+ },
+ "exp": "smote",
+ "dataset": "ieee",
+ "protocol": "random",
+ "model": "rf",
+ "imb": "weight",
+ "seed": 2,
+ "n_train": 160000,
+ "n_test": 40000
+}

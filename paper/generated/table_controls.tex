@@ -1,0 +1,24 @@
+\begin{table}[t]
+\caption{Controls that score both protocols on the same transactions (\prauc{}). Left: random-split models scored only on their test transactions inside the chronological test period, against the chronological models. Right: five-fold cross-validation with random folds against contiguous time blocks.}
+\label{tab:controls}
+\small
+\begin{tabular}{llrrrrrr}
+\toprule
+ & & \multicolumn{3}{c}{Same test period} & \multicolumn{3}{c}{Five-fold cross-validation} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+Dataset & Model & Random & Chrono. & $\Delta$ & Random folds & Time blocks & $\Delta$ \\
+\midrule
+IEEE-CIS & Logistic regression & 0.432 & 0.360 & $-$0.072 & 0.469 & 0.410 & $-$0.059 \\
+ & Random forest & 0.725 & 0.523 & $-$0.202 & -- & -- & -- \\
+ & XGBoost & 0.871 & 0.594 & $-$0.277 & -- & -- & -- \\
+ & LightGBM & 0.870 & 0.598 & $-$0.273 & -- & -- & -- \\
+ & MLP & 0.714 & 0.452 & $-$0.262 & 0.710 & 0.495 & $-$0.214 \\
+\addlinespace
+ULB & Logistic regression & 0.762 & 0.787 & $+$0.024 & 0.752 & 0.775 & $+$0.023 \\
+ & Random forest & 0.771 & 0.797 & $+$0.026 & 0.850 & 0.790 & $-$0.060 \\
+ & XGBoost & 0.765 & 0.796 & $+$0.031 & 0.853 & 0.792 & $-$0.061 \\
+ & LightGBM & 0.753 & 0.781 & $+$0.028 & 0.846 & 0.787 & $-$0.059 \\
+ & MLP & 0.775 & 0.811 & $+$0.036 & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}

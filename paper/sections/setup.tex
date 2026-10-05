@@ -38,7 +38,7 @@ We evaluate five standard classifiers: logistic regression, a random forest~\cit
 
 Each model is tuned with 30 trials of Optuna's tree-structured Parzen estimator~\cite{akiba2019optuna}, maximising \prauc{} on the validation set of the protocol at hand. The boosted models and the MLP stop early on validation \prauc{}. The selected configuration is then refitted on training plus validation data, with the number of boosting rounds or epochs found during tuning, and scored once on the test set. A seed repeats this whole pipeline: split (random protocol only), tuning, refit and test. We run five seeds. Under the chronological protocol the split is fixed, so the seeds vary only the tuner and the model; the standard deviations we report for it therefore understate sampling uncertainty, and we complement them with a bootstrap over test transactions and with the rolling windows.
 
-The tree models receive the raw matrix with missing values. Logistic regression and the MLP receive median-imputed, standardised features, with the amount log-transformed; the imputation and scaling statistics are computed on the training rows of each fit and never on validation or test rows.
+The tree models receive the raw matrix with missing values, and each tree of the random forest is grown on at most 100{,}000 sampled training rows. Logistic regression and the MLP receive median-imputed, standardised features, with the amount log-transformed; the imputation and scaling statistics are computed on the training rows of each fit and never on validation or test rows.
 
 \begin{table}[t]
 \caption{Hyperparameter search spaces (30 trials per model, protocol and seed). $\alpha$ is the class-weight exponent of Section~\ref{sec:imbalance}.}
@@ -74,11 +74,13 @@ A second experiment replaces class weights by SMOTE~\cite{chawla2002smote}, whic
 
 For the flawed pipeline we report two scores: the score on its own oversampled test set, which is the number such a study would publish, and the score of the same fitted models on only the genuine transactions of that test set. The first mixes two effects, a test set that no longer has the real class ratio and information flowing from test to training rows. The second isolates the information flow.
 
+On ULB the oversampling experiment uses the full data and five seeds. On IEEE-CIS, where oversampling doubles an already large training set, it uses a random subsample of 200{,}000 transactions and three seeds, with a class-weight baseline rerun on the same subsample. Rolling windows and cross-validation use one seed, since they already repeat the comparison over windows or folds.
+
 \subsection{Metrics}
 
 The primary metric is the area under the precision--recall curve (\prauc{}, computed as average precision), which is more informative than \rocauc{} when positives are rare~\cite{davis2006relationship,saito2015precision}. We report \rocauc{} for comparison with prior work.
 
-A fraud team can review only a limited number of alerts, so we also report \emph{alert-budget} metrics. The highest-scored 0.5\% or 1\% of test transactions are flagged, and we measure \emph{recall}, the share of fraud cases among the flagged transactions relative to all fraud cases in the test set, and \emph{value recall}, the share of the fraudulent amount that the flagged transactions account for. Value recall weights each caught fraud by the money at stake.
+A fraud team can review only a limited number of alerts, so we also report \emph{alert-budget} metrics. The highest-scored 0.5\%, 1\% or 5\% of test transactions are flagged, and we measure \emph{recall}, the share of the test set's fraud cases that are flagged, and \emph{value recall}, the share of the fraudulent amount that the flagged transactions account for. Value recall weights each caught fraud by the money at stake. The 5\% budget is included because fraud makes up more than 1\% of IEEE-CIS, which caps recall at the two smaller budgets.
 
 \subsection{Implementation}
 

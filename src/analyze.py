@@ -46,6 +46,10 @@ def collect():
     return pd.DataFrame(rows)
 
 
+def signed(v, digits=3):
+    return f"${'+' if v >= 0 else '-'}${abs(v):.{digits}f}"
+
+
 def pm(mean, sd, digits=3):
     return f"{mean:.{digits}f} {{\\scriptsize$\\pm$ {sd:.{digits}f}}}"
 
@@ -79,12 +83,81 @@ def table_main(df, metrics, caption, label, fname):
                     continue
                 r, c = mean.loc[(d, m), "random"], mean.loc[(d, m), "chrono"]
                 cells += [pm(r, sd.loc[(d, m), "random"]), pm(c, sd.loc[(d, m), "chrono"]),
-                          f"{c - r:+.3f}"]
+                          signed(c - r)]
             lines.append(" & ".join(cells) + r" \\")
         lines.append(r"\addlinespace")
     lines[-1] = r"\bottomrule"
     lines += [r"\end{tabular}", r"\end{table}"]
     (OUT / fname).write_text("\n".join(lines) + "\n")
+
+
+def table_budget(df):
+    """Alert-budget metrics, means over seeds."""
+    main = df[df.exp == "main"]
+    cols = [("recall@0.005", "Recall, 0.5\\%"), ("recall@0.01", "Recall, 1\\%"),
+            ("recall@0.05", "Recall, 5\\%"), ("value_recall@0.01", "Value recall, 1\\%"),
+            ("value_recall@0.05", "Value recall, 5\\%")]
+    lines = [r"\begin{table}[t]",
+             r"\caption{Alert-budget metrics: share of fraud cases (recall) and of fraud value "
+             r"(value recall) caught when the highest-scored 0.5\%, 1\% or 5\% of test "
+             r"transactions are flagged. R = random split, C = chronological split; mean over 5 "
+             r"seeds. Recall cannot exceed the budget divided by the fraud rate, which is 0.14 and "
+             r"0.29 for the two smaller budgets on IEEE-CIS.}",
+             r"\label{tab:budget}", r"\small",
+             r"\begin{tabular}{ll" + "rr" * len(cols) + "}", r"\toprule",
+             " & " + "".join(rf" & \multicolumn{{2}}{{c}}{{{name}}}" for _, name in cols) + r" \\",
+             "".join(rf"\cmidrule(lr){{{3 + 2 * i}-{4 + 2 * i}}}" for i in range(len(cols))),
+             "Dataset & Model" + " & R & C" * len(cols) + r" \\", r"\midrule"]
+    for d in available(df, "main"):
+        for i, m in enumerate(MODELS):
+            cells = [DATASETS[d] if i == 0 else "", MODEL_NAMES[m]]
+            for metric, _ in cols:
+                mean, _sd = agg(main, metric)
+                if (d, m) not in mean.index:
+                    cells += ["--"] * 2
+                    continue
+                cells += [f"{mean.loc[(d, m), 'random']:.3f}", f"{mean.loc[(d, m), 'chrono']:.3f}"]
+            lines.append(" & ".join(cells) + r" \\")
+        lines.append(r"\addlinespace")
+    lines[-1] = r"\bottomrule"
+    lines += [r"\end{tabular}", r"\end{table}"]
+    (OUT / "table_budget.tex").write_text("\n".join(lines) + "\n")
+
+
+def table_controls(df, pmatch):
+    """Both controls that hold the test transactions fixed, PR-AUC."""
+    main = df[df.exp == "main"]
+    mean, _ = agg(main, "pr_auc")
+    cv = cv_frame(df).groupby(["dataset", "model", "scheme"]).pr_auc.mean().unstack()
+    pmm = pmatch.groupby(["dataset", "model"]).pr_auc.mean()
+    lines = [r"\begin{table}[t]",
+             r"\caption{Controls that score both protocols on the same transactions (\prauc{}). "
+             r"Left: random-split models scored only on their test transactions inside the "
+             r"chronological test period, against the chronological models. Right: five-fold "
+             r"cross-validation with random folds against contiguous time blocks.}",
+             r"\label{tab:controls}", r"\small", r"\begin{tabular}{llrrrrrr}", r"\toprule",
+             r" & & \multicolumn{3}{c}{Same test period} & \multicolumn{3}{c}{Five-fold "
+             r"cross-validation} \\", r"\cmidrule(lr){3-5}\cmidrule(lr){6-8}",
+             r"Dataset & Model & Random & Chrono. & $\Delta$ & Random folds & Time blocks & "
+             r"$\Delta$ \\", r"\midrule"]
+    for d in available(df, "main"):
+        for i, m in enumerate(MODELS):
+            cells = [DATASETS[d] if i == 0 else "", MODEL_NAMES[m]]
+            if (d, m) in pmm.index and (d, m) in mean.index and not np.isnan(mean.loc[(d, m), "chrono"]):
+                r, c = pmm.loc[(d, m)], mean.loc[(d, m), "chrono"]
+                cells += [f"{r:.3f}", f"{c:.3f}", signed(c - r)]
+            else:
+                cells += ["--"] * 3
+            if (d, m) in cv.index and cv.loc[(d, m)].notna().all():
+                r, c = cv.loc[(d, m), "randcv"], cv.loc[(d, m), "blockcv"]
+                cells += [f"{r:.3f}", f"{c:.3f}", signed(c - r)]
+            else:
+                cells += ["--"] * 3
+            lines.append(" & ".join(cells) + r" \\")
+        lines.append(r"\addlinespace")
+    lines[-1] = r"\bottomrule"
+    lines += [r"\end{tabular}", r"\end{table}"]
+    (OUT / "table_controls.tex").write_text("\n".join(lines) + "\n")
 
 
 def period_matched(df):
@@ -144,15 +217,15 @@ def table_smote(df):
     sub = s[s.imb == "weight"]
     w = pd.concat([sub, df[(df.exp == "main") & (df.protocol == "random")
                            & ~df.dataset.isin(sub.dataset.unique())]])
-    cols = [("Class weights", w, "pr_auc", "f1_at_0.5"),
-            ("SMOTE on training rows", s[s.imb == "smote"], "pr_auc", "f1_at_0.5"),
-            ("SMOTE before split, as reported", s[s.imb == "smote_leaky"],
+    cols = [("\\shortstack{Class\\\\weights}", w, "pr_auc", "f1_at_0.5"),
+            ("\\shortstack{SMOTE on\\\\training rows}", s[s.imb == "smote"], "pr_auc", "f1_at_0.5"),
+            ("\\shortstack{SMOTE before split,\\\\as reported}", s[s.imb == "smote_leaky"],
              "reported_pr_auc", "reported_f1_at_0.5"),
-            ("SMOTE before split, real test rows", s[s.imb == "smote_leaky"],
+            ("\\shortstack{SMOTE before split,\\\\genuine test rows}", s[s.imb == "smote_leaky"],
              "pr_auc", "f1_at_0.5")]
     lines = [r"\begin{table}[t]",
              r"\caption{Oversampling leak under a random split. ``As reported'' scores the "
-             r"flawed pipeline on its own oversampled test set; ``real test rows'' scores the "
+             r"flawed pipeline on its own oversampled test set; ``genuine test rows'' scores the "
              r"same models on the genuine transactions of that test set. Mean over 5 seeds.}",
              r"\label{tab:smote}", r"\small",
              r"\begin{tabular}{ll" + "rr" * len(cols) + "}", r"\toprule",
@@ -196,30 +269,6 @@ def cv_frame(df):
     cv = df[df.exp == "cv"].copy()
     cv["scheme"] = cv.protocol.str.split("_").str[0]
     return cv
-
-
-def table_cv(df):
-    cv = cv_frame(df)
-    lines = [r"\begin{table}[t]",
-             r"\caption{Five-fold cross-validation with random folds versus contiguous time "
-             r"blocks. Both schemes test every transaction exactly once. \prauc{}, mean $\pm$ "
-             r"standard deviation over the five folds.}",
-             r"\label{tab:cv}", r"\small", r"\begin{tabular}{llrrr}", r"\toprule",
-             r"Dataset & Model & Random folds & Time blocks & $\Delta$ \\", r"\midrule"]
-    for d in [x for x in DATASETS if (cv.dataset == x).any()]:
-        for i, m in enumerate(MODELS):
-            part = cv[(cv.dataset == d) & (cv.model == m)].groupby("scheme").pr_auc
-            if len(part) < 2:
-                continue
-            mean, sd = part.mean(), part.std(ddof=1)
-            lines.append(" & ".join([DATASETS[d] if i == 0 else "", MODEL_NAMES[m],
-                                     pm(mean["randcv"], sd["randcv"]),
-                                     pm(mean["blockcv"], sd["blockcv"]),
-                                     f"{mean['blockcv'] - mean['randcv']:+.3f}"]) + r" \\")
-        lines.append(r"\addlinespace")
-    lines[-1] = r"\bottomrule"
-    lines += [r"\end{tabular}", r"\end{table}"]
-    (OUT / "table_cv.tex").write_text("\n".join(lines) + "\n")
 
 
 # ------------------------------------------------------------------ mechanism
@@ -303,36 +352,6 @@ def _style(ax):
     ax.set_axisbelow(True)
 
 
-def figure_rolling(df):
-    """PR-AUC per rolling window: one panel per model, random vs chronological."""
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    roll = df[(df.exp == "rolling") & (df.dataset == "ieee")].copy()
-    roll["split"] = roll.protocol.str.split("_").str[0]
-    roll["window"] = roll.protocol.str[-1].astype(int)
-    models = [m for m in MODELS if (roll.model == m).any()]
-    fig, axes = plt.subplots(1, len(models), figsize=(7.0, 2.3), sharey=True)
-    for ax, m in zip(np.atleast_1d(axes), models):
-        for split, (label, color, marker) in SERIES.items():
-            part = roll[(roll.model == m) & (roll.split == split)].groupby("window").pr_auc.mean()
-            ax.plot(part.index + 4, part.values, color=color, marker=marker, markersize=5,
-                    linewidth=2, label=label, markeredgecolor="white", markeredgewidth=0.8)
-        ax.set_title(MODEL_NAMES[m], fontsize=9, color=INK)
-        ax.set_xticks([4, 5, 6])
-        ax.set_xlim(3.7, 6.3)
-        _style(ax)
-    np.atleast_1d(axes)[0].set_ylabel("PR-AUC", fontsize=9, color=INK)
-    fig.supxlabel("Test month (trained on the three months before it)", fontsize=9, color=INK, y=0.1)
-    handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=2, frameon=False, fontsize=8.5,
-               bbox_to_anchor=(0.5, -0.04))
-    fig.tight_layout(rect=(0, 0.08, 1, 1))
-    fig.savefig(OUT / "fig_rolling.pdf", bbox_inches="tight")
-    plt.close(fig)
-
-
 def weekly_frame(df, d="ieee"):
     """PR-AUC by week of the chronological test period, for chronological models and
     for random-split models scored on their test rows of the same week."""
@@ -353,31 +372,202 @@ def weekly_frame(df, d="ieee"):
     return pd.DataFrame(rows)
 
 
-def figure_weekly(df):
+def figure_time(df):
+    """Top row: PR-AUC per rolling window. Bottom row: PR-AUC by week of the final 20%
+    of the timeline. One column per model, random vs chronological."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    wk = weekly_frame(df)
-    models = [m for m in MODELS if (wk.model == m).any()]
-    fig, axes = plt.subplots(1, len(models), figsize=(7.0, 2.3), sharey=True)
-    for ax, m in zip(np.atleast_1d(axes), models):
-        for split, (label, color, marker) in SERIES.items():
-            part = wk[(wk.model == m) & (wk.protocol == split)].groupby("week").pr_auc.mean()
-            ax.plot(part.index, part.values, color=color, marker=marker, markersize=5,
-                    linewidth=2, label=label, markeredgecolor="white", markeredgewidth=0.8)
-        ax.set_title(MODEL_NAMES[m], fontsize=9, color=INK)
-        ax.set_xticks(range(1, 7))
-        _style(ax)
-    np.atleast_1d(axes)[0].set_ylabel("PR-AUC", fontsize=9, color=INK)
-    fig.supxlabel("Week of the final 20% of the timeline", fontsize=9, color=INK, y=0.1)
-    handles, labels = np.atleast_1d(axes)[0].get_legend_handles_labels()
+    roll = df[(df.exp == "rolling") & (df.dataset == "ieee")].copy()
+    roll["split"] = roll.protocol.str.split("_").str[0]
+    roll["x"] = roll.protocol.str[-1].astype(int) + 4
+    wk = weekly_frame(df).rename(columns={"protocol": "split", "week": "x"})
+    models = [m for m in MODELS if (roll.model == m).any() and (wk.model == m).any()]
+    fig, axes = plt.subplots(2, len(models), figsize=(7.0, 3.9), sharey=True, squeeze=False)
+    rows = [(roll, [4, 5, 6], (3.7, 6.3), "Test month (model trained on the three months before it)"),
+            (wk, list(range(1, 7)), (0.6, 6.4), "Week of the final 20% of the timeline")]
+    for r, (frame, ticks, xlim, xlabel) in enumerate(rows):
+        for c, m in enumerate(models):
+            ax = axes[r, c]
+            for split, (label, color, marker) in SERIES.items():
+                part = frame[(frame.model == m) & (frame.split == split)].groupby("x").pr_auc.mean()
+                ax.plot(part.index, part.values, color=color, marker=marker, markersize=4.5,
+                        linewidth=2, label=label, markeredgecolor="white", markeredgewidth=0.8)
+            if r == 0:
+                ax.set_title(MODEL_NAMES[m], fontsize=9, color=INK)
+            ax.set_xticks(ticks)
+            ax.set_xlim(*xlim)
+            _style(ax)
+        axes[r, 0].set_ylabel("PR-AUC", fontsize=9, color=INK)
+        axes[r, len(models) // 2].set_xlabel(xlabel, fontsize=9, color=INK)
+    handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=2, frameon=False, fontsize=8.5,
-               bbox_to_anchor=(0.5, -0.04))
-    fig.tight_layout(rect=(0, 0.08, 1, 1))
-    fig.savefig(OUT / "fig_weekly.pdf", bbox_inches="tight")
+               bbox_to_anchor=(0.5, -0.02))
+    fig.tight_layout(rect=(0, 0.04, 1, 1), h_pad=1.2)
+    fig.savefig(OUT / "fig_time.pdf", bbox_inches="tight")
     plt.close(fig)
     return wk
+
+
+# ------------------------------------------------------------------ numbers for the prose
+SHORT = {"pr_auc": "pr", "roc_auc": "roc", "recall@0.005": "r005", "recall@0.01": "r01",
+         "recall@0.05": "r05", "value_recall@0.01": "v01", "value_recall@0.05": "v05",
+         "precision@0.005": "p005", "precision@0.01": "p01", "precision@0.05": "p05",
+         "f1_at_0.5": "f1"}
+
+
+def numbers(df, pmatch, boot):
+    """Every figure quoted in the text, as \\num{key} macros, so prose cannot drift
+    from the stored results."""
+    N = {}
+    f3, pct = (lambda v: f"{v:.3f}"), (lambda v: f"{100 * v:.0f}")
+    main = df[df.exp == "main"]
+    for d in available(df, "main"):
+        ds = dataset(d)
+        cut = int(len(ds) * TEST_START)
+        N[f"{d}.n"], N[f"{d}.fraud"] = f"{len(ds):,}", f"{int(ds.y.sum()):,}"
+        N[f"{d}.rate"] = f"{100 * ds.y.mean():.2f}"
+        N[f"{d}.testfraud"] = f"{int(ds.y[cut:].sum()):,}"
+        part = main[main.dataset == d]
+        for metric, short in SHORT.items():
+            mean = part.groupby(["model", "protocol"])[metric].mean().unstack()
+            sd = part.groupby(["model", "protocol"])[metric].std(ddof=1).unstack()
+            mean = mean.dropna()
+            for m in mean.index:
+                r, c = mean.loc[m, "random"], mean.loc[m, "chrono"]
+                N[f"{d}.{m}.random.{short}"], N[f"{d}.{m}.chrono.{short}"] = f3(r), f3(c)
+                N[f"{d}.{m}.random.{short}.sd"] = f3(sd.loc[m, "random"])
+                N[f"{d}.{m}.drop.{short}"] = f3(r - c)
+                N[f"{d}.{m}.rel.{short}"] = pct((r - c) / r)
+            drop = mean["random"] - mean["chrono"]
+            rel = drop / mean["random"]
+            N[f"{d}.mean.random.{short}"], N[f"{d}.mean.chrono.{short}"] = (
+                f3(mean["random"].mean()), f3(mean["chrono"].mean()))
+            N[f"{d}.mean.drop.{short}"], N[f"{d}.mean.rel.{short}"] = f3(drop.mean()), pct(rel.mean())
+            N[f"{d}.min.drop.{short}"], N[f"{d}.max.drop.{short}"] = f3(drop.min()), f3(drop.max())
+            N[f"{d}.min.rel.{short}"], N[f"{d}.max.rel.{short}"] = pct(rel.min()), pct(rel.max())
+            if len(mean) >= 3:
+                tau = kendalltau(mean["random"].rank(), mean["chrono"].rank()).statistic
+                N[f"{d}.tau.{short}"] = f"{tau:.2f}"
+            for proto in ("random", "chrono"):
+                N[f"{d}.range.{proto}.{short}"] = f"{mean[proto].max() - mean[proto].min():.2f}"
+                N[f"{d}.best.{proto}.{short}"] = MODEL_NAMES[mean[proto].idxmax()]
+        for m, g in pmatch[pmatch.dataset == d].groupby("model"):
+            N[f"{d}.{m}.matched.pr"] = f3(g.pr_auc.mean())
+            if f"{d}.{m}.chrono.pr" in N:
+                N[f"{d}.{m}.matcheddrop.pr"] = f3(g.pr_auc.mean() - float(N[f"{d}.{m}.chrono.pr"]))
+        pm_d = pmatch[pmatch.dataset == d]
+        N[f"{d}.matched.nfraud"] = f"{pm_d.n_fraud.mean():.0f}"
+        N[f"{d}.mean.matched.pr"] = f3(pm_d.groupby("model").pr_auc.mean().mean())
+        for (dd, m), row in boot.iterrows():
+            if dd == d:
+                N[f"{d}.{m}.ci.lo"], N[f"{d}.{m}.ci.hi"] = f3(-row.hi), f3(-row.lo)
+        prox = proximity(d)
+        for k, short in (("exact_duplicate_in_train", "dup"), ("train_fraud_within_1min", "min1"),
+                         ("train_fraud_within_10min", "min10")):
+            N[f"{d}.prox.{short}.random"] = pct(prox.loc[k, "random"])
+            N[f"{d}.prox.{short}.chrono"] = pct(prox.loc[k, "chrono"])
+    if "ieee" in available(df, "main"):
+        table, _ = entity_overlap()
+        for col in table.columns:
+            N[f"ieee.key.fraud.{col}"] = pct(table.loc["test_fraud_key_among_train_fraud", col])
+            N[f"ieee.key.legit.{col}"] = pct(table.loc["test_legit_key_among_train_fraud", col])
+    # 7-day gap
+    gap = df[df.exp == "gap"].groupby("model").pr_auc.mean()
+    for m, v in gap.items():
+        N[f"ieee.{m}.gap7.pr"] = f3(v)
+        if f"ieee.{m}.chrono.pr" in N:
+            N[f"ieee.{m}.gap7.drop"] = f3(float(N[f"ieee.{m}.chrono.pr"]) - v)
+    if len(gap):
+        N["ieee.mean.gap7.pr"] = f3(gap.mean())
+        drops = [float(N[f"ieee.{m}.gap7.drop"]) for m in gap.index if f"ieee.{m}.gap7.drop" in N]
+        N["ieee.min.gap7.drop"], N["ieee.max.gap7.drop"] = f3(min(drops)), f3(max(drops))
+    # rolling windows
+    roll = df[df.exp == "rolling"].copy()
+    if len(roll):
+        roll["split"] = roll.protocol.str.split("_").str[0]
+        mean = roll.groupby(["model", "split"]).pr_auc.mean().unstack().dropna()
+        for m in mean.index:
+            N[f"ieee.{m}.roll.random"], N[f"ieee.{m}.roll.chrono"] = (
+                f3(mean.loc[m, "random"]), f3(mean.loc[m, "chrono"]))
+            N[f"ieee.{m}.roll.drop"] = f3(mean.loc[m, "random"] - mean.loc[m, "chrono"])
+        per = roll.groupby(["model", "protocol"]).pr_auc.mean().unstack()
+        drops = pd.concat([per[f"random_w{w}"] - per[f"chrono_w{w}"] for w in range(3)]).dropna()
+        N["ieee.roll.mindrop"], N["ieee.roll.maxdrop"] = f3(drops.min()), f3(drops.max())
+        N["ieee.roll.meandrop"] = f3((mean["random"] - mean["chrono"]).mean())
+    # cross-validation
+    cv = cv_frame(df)
+    if len(cv):
+        mean = cv.groupby(["dataset", "model", "scheme"]).pr_auc.mean().unstack().dropna()
+        for (d, m), row in mean.iterrows():
+            N[f"{d}.{m}.randcv"], N[f"{d}.{m}.blockcv"] = f3(row.randcv), f3(row.blockcv)
+            N[f"{d}.{m}.cvdrop"] = f3(row.randcv - row.blockcv)
+        for d, g in mean.groupby("dataset"):
+            N[f"{d}.mean.cvdrop"] = f3((g.randcv - g.blockcv).mean())
+        bb = cv_by_block(df).groupby(["dataset", "block"])[["random_folds", "time_block", "drop"]].mean()
+        for (d, b), row in bb.iterrows():
+            N[f"{d}.block{b}.rand"], N[f"{d}.block{b}.time"] = f3(row.random_folds), f3(row.time_block)
+            N[f"{d}.block{b}.drop"] = f3(row["drop"]) if row["drop"] >= 0 else signed(row["drop"])
+        for d, g in bb.groupby("dataset"):
+            N[f"{d}.blocks.mindrop"], N[f"{d}.blocks.maxdrop"] = f3(g["drop"].min()), f3(g["drop"].max())
+            N[f"{d}.blocks.restdrop"] = f3(g["drop"].sort_values().iloc[:-1].mean())
+    # oversampling
+    s = df[df.exp == "smote"]
+    for d in s.dataset.unique():
+        sub = s[(s.dataset == d) & (s.imb == "weight")]
+        base = sub if len(sub) else df[(df.exp == "main") & (df.dataset == d) & (df.protocol == "random")]
+        arms = {"weight": (base, "pr_auc", "f1_at_0.5"),
+                "smote": (s[(s.dataset == d) & (s.imb == "smote")], "pr_auc", "f1_at_0.5"),
+                "leakrep": (s[(s.dataset == d) & (s.imb == "smote_leaky")], "reported_pr_auc",
+                            "reported_f1_at_0.5"),
+                "leakreal": (s[(s.dataset == d) & (s.imb == "smote_leaky")], "pr_auc", "f1_at_0.5")}
+        for arm, (part, a, b) in arms.items():
+            g = part.groupby("model")[[a, b]].mean()
+            for m, row in g.iterrows():
+                N[f"{d}.{m}.{arm}.pr"], N[f"{d}.{m}.{arm}.f1"] = f3(row[a]), f3(row[b])
+            if len(g):
+                N[f"{d}.mean.{arm}.pr"], N[f"{d}.mean.{arm}.f1"] = f3(g[a].mean()), f3(g[b].mean())
+                N[f"{d}.min.{arm}.pr"], N[f"{d}.max.{arm}.pr"] = f3(g[a].min()), f3(g[a].max())
+    # timestamp as a feature
+    tf = df[df.exp == "timefeat"].groupby(["dataset", "model", "protocol"]).pr_auc.mean().unstack()
+    for (d, m), row in tf.dropna().iterrows():
+        N[f"{d}.{m}.tf.random"], N[f"{d}.{m}.tf.chrono"] = f3(row.random), f3(row.chrono)
+    for d, g in tf.dropna().groupby("dataset"):
+        N[f"{d}.mean.tf.random"], N[f"{d}.mean.tf.chrono"] = f3(g.random.mean()), f3(g.chrono.mean())
+    lines = [r"\makeatletter",
+             r"\newcommand{\num}[1]{\@ifundefined{num@#1}{\textbf{??#1??}}{\@nameuse{num@#1}}}"]
+    lines += [rf"\@namedef{{num@{k}}}{{{v}}}" for k, v in sorted(N.items())]
+    lines.append(r"\makeatother")
+    (OUT / "numbers.tex").write_text("\n".join(lines) + "\n")
+    return N
+
+
+def cv_by_block(df, k=5):
+    """Split the cross-validation comparison by time block. For block b: PR-AUC of the
+    blocked fold that holds out b, against the mean over the random folds of PR-AUC on
+    the part of each fold's test set that lies in b."""
+    rows = []
+    cv = cv_frame(df)
+    for (d, m), grp in cv.groupby(["dataset", "model"]):
+        if grp.scheme.nunique() < 2 or len(grp) < 2 * k:
+            continue
+        ds = dataset(d)
+        edges = np.linspace(0, len(ds), k + 1).astype(int)
+        rand = [np.load(x) for x in grp[grp.scheme == "randcv"].path]
+        for b in range(k):
+            zb = np.load(grp[grp.protocol == f"blockcv_f{b}"].path.iloc[0])
+            aps = []
+            for z in rand:
+                keep = (z["test_idx"] >= edges[b]) & (z["test_idx"] < edges[b + 1])
+                aps.append(fast_ap(ds.y[z["test_idx"][keep]], z["score"][keep]))
+            rows.append({"dataset": d, "model": m, "block": b + 1, "random_folds": np.mean(aps),
+                         "time_block": fast_ap(ds.y[zb["test_idx"]], zb["score"]),
+                         "n_fraud": int(ds.y[zb["test_idx"]].sum())})
+    out = pd.DataFrame(rows)
+    if len(out):
+        out["drop"] = out.random_folds - out.time_block
+    return out
 
 
 def summary(df):
@@ -386,6 +576,7 @@ def summary(df):
     main = df[df.exp == "main"]
     pmatch = period_matched(df)
     boot = bootstrap_gap(df).set_index(["dataset", "model"])
+    numbers(df, pmatch, boot)
     for d in available(df, "main"):
         ds = dataset(d)
         n, cut = len(ds), int(len(ds) * TEST_START)
@@ -429,6 +620,12 @@ def summary(df):
     if "ieee" in available(df, "main"):
         table, note = entity_overlap()
         lines += ["== card-key overlap (ieee)", note, table.round(4).to_string()]
+    byblock = cv_by_block(df)
+    if len(byblock):
+        lines.append("== cv by time block (PR-AUC)")
+        lines.append(byblock.round(4).to_string(index=False))
+        lines.append(byblock.groupby(["dataset", "block"])[["random_folds", "time_block", "drop",
+                                                             "n_fraud"]].mean().round(4).to_string())
     cv = cv_frame(df)
     if len(cv):
         lines.append("== cv (per-fold PR-AUC)")
@@ -457,21 +654,14 @@ def main():
     table_main(df, [("pr_auc", "PR-AUC"), ("roc_auc", "ROC-AUC")],
                "Random versus chronological split. Mean $\\pm$ standard deviation over 5 seeds; "
                "$\\Delta$ = chronological $-$ random.", "tab:main", "table_main.tex")
-    table_main(df, [("recall@0.005", "Recall at 0.5\\% budget"), ("recall@0.01", "Recall at 1\\% budget"),
-                    ("value_recall@0.01", "Value recall at 1\\% budget")],
-               "Alert-budget metrics under the two splits: share of fraud cases (recall) and of "
-               "fraud value caught when the highest-scored 0.5\\% or 1\\% of test transactions "
-               "are flagged.", "tab:budget", "table_budget.tex")
+    table_budget(df)
     table_data([d for d in DATASETS if d in available(df, "main")])
     if (df.exp == "smote").any():
         table_smote(df)
-    if (df.exp == "cv").any():
-        table_cv(df)
+    table_controls(df, period_matched(df))
     if ((df.exp == "rolling") & (df.dataset == "ieee")).any():
-        figure_rolling(df)
-    if ((df.exp == "main") & (df.dataset == "ieee")).any():
-        wk = figure_weekly(df)
-        wk.groupby(["model", "protocol", "week"])[["pr_auc", "n_fraud"]].mean().round(4).to_csv(
+        wk = figure_time(df)
+        wk.groupby(["model", "split", "x"])[["pr_auc", "n_fraud"]].mean().round(4).to_csv(
             OUT / "weekly.csv")
     print(summary(df))
 

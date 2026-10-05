@@ -1,0 +1,37 @@
+{
+ "val_pr_auc": 0.8514035205982261,
+ "tune_seconds": 4080.5791370868683,
+ "params": {
+  "learning_rate": 0.04884687164576774,
+  "num_leaves": 239,
+  "min_child_samples": 26,
+  "subsample": 0.818795011559308,
+  "colsample_bytree": 0.4829540910697452,
+  "reg_lambda": 0.3217462394002981,
+  "alpha": 0.2861251993550243
+ },
+ "n_iter": 882,
+ "fit_seconds": 223.21743273735046,
+ "metrics": {
+  "n": 118108,
+  "n_fraud": 4133,
+  "prevalence": 0.0349933958749619,
+  "pr_auc": 0.8645457162857162,
+  "roc_auc": 0.9734370776634143,
+  "f1_at_0.5": 0.8037487760525948,
+  "recall@0.005": 0.14299540285506895,
+  "value_recall@0.005": 0.10436308347964476,
+  "precision@0.005": 1.0,
+  "recall@0.01": 0.28574885071376727,
+  "value_recall@0.01": 0.21430167145784826,
+  "precision@0.01": 0.9991539763113367
+ },
+ "exp": "main",
+ "dataset": "ieee",
+ "protocol": "random",
+ "model": "lgbm",
+ "imb": "weight",
+ "seed": 1,
+ "n_train": 472432,
+ "n_test": 118108
+}

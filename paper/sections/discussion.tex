@@ -1,0 +1,29 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{What the random split measures}
+The results fit one explanation. Fraud arrives in episodes: a compromised card is used several times within minutes or days, and the transactions of an episode resemble each other. A random split scatters each episode over training and test data, so the test asks whether a model can recognise the rest of an episode it has already seen labelled. That task is real, since a bank does learn of a compromised card while it is still being used, but it is much easier than detecting a new episode, and a random split gives the model every other transaction of the episode at once, including later ones. The chronological split asks the question a deployed system faces. The gap between the two is not gradual concept drift, which would grow with the distance from the training period; it appears in the first week.
+
+The size of the gap depends on how much a model can memorise. Logistic regression loses least in absolute terms on IEEE-CIS and nothing to the oversampling leak; the tree ensembles and the MLP lose most. A random split therefore overstates performance and also overstates the benefit of model capacity, which matters when a study's claim is that a more complex model beats a simpler one.
+
+\paragraph{What the two datasets can support}
+IEEE-CIS is large enough for these effects to be measured tightly. ULB is not. Its 492 fraud cases over two days leave a chronological test set of 75, random-split scores that move by several points from seed to seed, and a temporal comparison confounded by which hours happen to fall in the test set. We could not establish a ranking of the five models on it under either protocol. A reported improvement of a point or two of \prauc{} on a single split of ULB is within this noise. The oversampling leak, in contrast, is far larger than the noise and easy to reproduce on it.
+
+\paragraph{A checklist for evaluating fraud models}
+\begin{enumerate}[leftmargin=1.8em,itemsep=2pt]
+\item \textbf{Split by time.} Train on earlier transactions and test on later ones, and state the cut points. Tune on a validation period that lies between them.
+\item \textbf{Respect label delay.} Leave a gap between training and test periods that matches how long labels take to arrive.
+\item \textbf{Fit everything on training rows only.} This covers imputation, scaling, encoding, feature selection and resampling. Resample after splitting, and never resample the test set.
+\item \textbf{Score at the real class ratio.} Report \prauc{} and recall at a stated alert budget on untouched test data; accuracy and F1 on a rebalanced test set are not informative.
+\item \textbf{Check that a gap is leakage.} A later period can be harder. Compare protocols on the same transactions, as in Section~\ref{sec:controls}, before attributing a difference to the split.
+\item \textbf{Repeat over periods and report variance.} Use rolling windows where the data allow it. On small datasets, state how many fraud cases the test set contains and how much the score varies across splits.
+\item \textbf{Report the money.} Recall by value can differ from recall by count.
+\item \textbf{Release code and stored predictions,} so that others can recompute metrics under a different protocol.
+\end{enumerate}
+
+\paragraph{Limitations}
+Both datasets are public and anonymised, and we deliberately used raw features. A production system would add card-history aggregates, which change both the level of performance and possibly the size of the gap; our numbers are not estimates of production performance. The card key we use on IEEE-CIS is a heuristic and the fraud labels in that dataset were themselves assigned with a delay we do not observe. Hyperparameters were tuned with 30 trials per model; for cost reasons the IEEE-CIS oversampling experiment used a 200{,}000-transaction subsample with three seeds, and rolling windows and cross-validation used one seed. The chronological protocols score a fixed model on six weeks of data and do not model retraining or investigator feedback, which the realistic-evaluation literature treats in depth~\cite{dalpozzolo2018credit}. We did not study sequence models or graph-based methods, whose leakage behaviour may differ.
+
+\section{Conclusion}
+
+On the larger of the two public payment-fraud datasets, a random split overstates the \prauc{} of five standard classifiers by a quarter to a third, and oversampling before the split overstates it further, in both cases because transactions from the same fraud episode fall on both sides of the split. On the smaller dataset the split matters less than it first appears and the oversampling leak matters more, and neither dataset size nor a single split supports the fine-grained model comparisons often drawn from it. Time-ordered splits, resampling confined to the training data, alert-budget metrics and a check on the same transactions cost little to adopt, and they turn a benchmark score into an estimate of what a fraud team would see.

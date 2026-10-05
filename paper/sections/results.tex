@@ -1,0 +1,79 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Random versus chronological split}
+
+Table~\ref{tab:main} gives the headline comparison.
+
+\input{generated/table_main}
+
+\paragraph{IEEE-CIS}
+Every model scores far lower when it has to predict the future. \prauc{} falls by between \num{ieee.min.drop.pr} (logistic regression) and \num{ieee.max.drop.pr}, which is \num{ieee.min.rel.pr}\% to \num{ieee.max.rel.pr}\% of the random-split score; the mean drop over the five models is \num{ieee.mean.drop.pr}. LightGBM goes from \num{ieee.lgbm.random.pr} to \num{ieee.lgbm.chrono.pr}. The drops dwarf the variation between seeds, and the bootstrap 95\% interval of the smallest one, for logistic regression, is [\num{ieee.lr.ci.lo}, \num{ieee.lr.ci.hi}].
+
+\rocauc{} registers the same effect but makes it look minor: the boosted models move from \num{ieee.lgbm.random.roc} to \num{ieee.lgbm.chrono.roc}, a change that is easy to dismiss in a results table, while their \prauc{} loses about a third.
+
+\paragraph{ULB}
+On ULB the three tree-based models lose \num{ulb.rf.drop.pr} to \num{ulb.lgbm.drop.pr} \prauc{} and their bootstrap intervals exclude zero. The MLP loses \num{ulb.mlp.drop.pr} with an interval of [\num{ulb.mlp.ci.lo}, \num{ulb.mlp.ci.hi}], and logistic regression does not lose at all. Two things qualify even the tree-model result. First, the dataset is small: the chronological test set holds \num{ulb.testfraud} fraud cases, and the random-split score itself has a standard deviation of \num{ulb.rf.random.pr.sd} to \num{ulb.lr.random.pr.sd} across seeds, which is as large as the differences between models that studies on this dataset report. Second, as the next subsection shows, most of this drop is not leakage.
+
+\paragraph{Model rankings}
+On IEEE-CIS the split does not change the order of the models (Kendall's $\tau=\num{ieee.tau.pr}$ between the two \prauc{} rankings); it changes how far apart they are. The spread between the best and the worst model shrinks from \num{ieee.range.random.pr} to \num{ieee.range.chrono.pr}. On ULB the random split ranks the tree ensembles well ahead of logistic regression, whereas under the chronological split all five models fall within \num{ulb.range.chrono.pr} of each other and the order is reshuffled ($\tau=\num{ulb.tau.pr}$). Given the noise on ULB we read this as ``no detectable difference between models'', not as a new ranking.
+
+\subsection{Is the later period simply harder?}
+\label{sec:controls}
+
+A lower score on the last 20\% of the timeline could mean that those weeks are harder, not that the random split leaked. Table~\ref{tab:controls} reports the two controls that score both protocols on the same transactions.
+
+\input{generated/table_controls}
+
+\paragraph{IEEE-CIS}
+Restricting the random-split models to the test transactions that fall inside the chronological test period, about \num{ieee.matched.nfraud} fraud cases per seed, leaves their scores essentially unchanged for four of the five models: the random forest scores \num{ieee.rf.matched.pr} on that period against \num{ieee.rf.random.pr} overall, LightGBM \num{ieee.lgbm.matched.pr} against \num{ieee.lgbm.random.pr}. The period is not harder for them; what they lose under the chronological split is the benefit of having trained on transactions from the same weeks. Logistic regression is the exception: it scores \num{ieee.lr.matched.pr} on that period, so about a third of its drop reflects a harder period and two thirds the split. Cross-validation agrees. With every transaction tested exactly once under both schemes, contiguous time blocks give lower \prauc{} than random folds for every model, and averaged over the models the difference is positive in each of the five blocks (\num{ieee.blocks.mindrop} to \num{ieee.blocks.maxdrop}).
+
+\paragraph{ULB}
+Here the controls change the conclusion. Scored only on the final period, the random-split models do no better than the chronological ones; they are slightly worse for all five models, although with about \num{ulb.matched.nfraud} fraud cases per seed the estimate is noisy. The drop in Table~\ref{tab:main} is therefore largely a harder final period. Cross-validation shows that interleaving does help the tree models on ULB, by about 0.06 on average, but the benefit is uneven across the two days: averaged over the models it is \num{ulb.block1.drop} in the first of the five time blocks, \num{ulb.block3.drop} and \num{ulb.block4.drop} in the third and fourth, and absent in the second (\num{ulb.block2.drop}) and in the fifth (\num{ulb.block5.drop}), which is the block a chronological split tests. Without these controls we would have attributed the whole ULB drop to leakage. Two days and \num{ulb.fraud} fraud cases are too little data to say more than this.
+
+\subsection{Different periods, label delay and time since training}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{generated/fig_time.pdf}
+\caption{IEEE-CIS. Top: \prauc{} on each rolling window, for a model trained on the three preceding months and for a random split of the same four months. Bottom: \prauc{} of the main-comparison models on each week of the final 20\% of the timeline; random-split models are scored on their test transactions from that week.}
+\Description{Two rows of five small line charts, one column per model. In every panel the random-split line lies above the chronological line. In the top row both lines are roughly flat across test months four to six. In the bottom row both lines move together across six weeks and the distance between them stays about the same.}
+\label{fig:time}
+\end{figure}
+
+The top row of Figure~\ref{fig:time} repeats the comparison on three different four-month windows of IEEE-CIS. The random split scores higher than the chronological one for every model in every window; the difference ranges from \num{ieee.roll.mindrop} to \num{ieee.roll.maxdrop} and averages \num{ieee.roll.meandrop}. The gap in Table~\ref{tab:main} is not a property of one cut point.
+
+Removing the last seven days before the test period from the training data, to mimic label delay, costs little more: depending on the model, \prauc{} falls by a further \num{ieee.min.gap7.drop} to \num{ieee.max.gap7.drop}.
+
+The bottom row of Figure~\ref{fig:time} follows the models through the six weeks of the test period. If the gap were caused by gradual drift, the chronological models would start close to the random-split ones and fall away. They do not: the gap is fully present in the first week after the training cut-off and stays roughly constant. Both curves rise and fall together, which reflects weeks that are easier or harder for any model. What the random split provides is therefore something a model loses the moment training and test transactions stop being interleaved. Section~\ref{sec:mechanism} identifies it.
+
+\subsection{Alert budgets}
+
+\input{generated/table_budget}
+
+Table~\ref{tab:budget} translates the comparison into review workload. On IEEE-CIS fraud is \num{ieee.rate}\% of transactions, so a 0.5\% or 1\% budget is smaller than the fraud volume and recall is capped. Within that cap the top of the ranking holds up comparatively well: at a 1\% budget the precision of LightGBM's alerts is \num{ieee.lgbm.random.p01} under the random split and \num{ieee.lgbm.chrono.p01} under the chronological one, although for logistic regression and the MLP it falls to \num{ieee.lr.chrono.p01} and \num{ieee.mlp.chrono.p01}. The inflation sits deeper in the ranking. At a 5\% budget, which is large enough to hold every fraud case, the random split promises that LightGBM catches \num{ieee.lgbm.random.r05} of fraud cases and \num{ieee.lgbm.random.v05} of fraud value; on future transactions it catches \num{ieee.lgbm.chrono.r05} and \num{ieee.lgbm.chrono.v05}. A team that sized its review capacity from the random-split figure would miss about a quarter of the fraud it expected to stop.
+
+On IEEE-CIS, value recall is lower than recall for every model at the 1\% budget: the fraud cases that are easiest to rank at the top are smaller than average, so counting cases overstates the money protected. On ULB the alert-budget metrics move little, in line with Section~\ref{sec:controls}.
+
+\subsection{Oversampling before the split}
+
+\input{generated/table_smote}
+
+Table~\ref{tab:smote} shows the second leak. Applied to the whole dataset before a random split, SMOTE produces the near-perfect figures familiar from the literature: on its own oversampled test set the flawed pipeline reports a \prauc{} of \num{ulb.min.leakrep.pr} or more for every model on ULB and between \num{ieee.min.leakrep.pr} and \num{ieee.max.leakrep.pr} on IEEE-CIS, with F1 scores to match.
+
+Part of this is an artefact of the test set, which is half synthetic fraud and no longer has the real class ratio. But scoring the same fitted models on only the genuine test transactions shows that real information has leaked as well. On ULB, XGBoost reaches \num{ulb.xgb.leakreal.pr}, the random forest \num{ulb.rf.leakreal.pr} and the MLP \num{ulb.mlp.leakreal.pr} on genuine transactions, against \num{ulb.xgb.smote.pr}, \num{ulb.rf.smote.pr} and \num{ulb.mlp.smote.pr} when only the training rows are oversampled. On IEEE-CIS the MLP goes from \num{ieee.mlp.smote.pr} to \num{ieee.mlp.leakreal.pr}. The reason is that a synthetic training point is placed on the segment between a fraud case and one of its neighbours; when that fraud case later lands in the test set, the training set contains points right next to it, labelled as fraud.
+
+Logistic regression is immune on both datasets (\num{ulb.lr.leakreal.pr} against \num{ulb.lr.smote.pr} on ULB): a linear boundary cannot exploit a handful of local points. The leak is thus a memorisation effect, and it grows with model flexibility. LightGBM on ULB reaches 0.98 or more in four of five seeds; in the fifth its training diverged, which pulls the mean down to \num{ulb.lgbm.leakreal.pr}.
+
+A side result is that SMOTE applied correctly does not improve on tuned class weights. On IEEE-CIS it is worse for every model (mean \prauc{} \num{ieee.mean.smote.pr} against \num{ieee.mean.weight.pr}), and on ULB the two are indistinguishable (\num{ulb.mean.smote.pr} against \num{ulb.mean.weight.pr}).
+
+\subsection{Where the inflation comes from}
+\label{sec:mechanism}
+
+Fraud is not spread evenly over cards or over time, and a random split puts pieces of the same episode on both sides.
+
+For IEEE-CIS we built a proxy for a payment card from the card and address columns and the day the card was first seen. Among cards with more than one transaction, 97\% carry a single label throughout, so knowing that a card was fraudulent once is almost as good as knowing the label. Under a random split, \num{ieee.key.fraud.random}\% of the fraud cases in the test set belong to a card that also has a fraud case in the training data. Under the chronological split the figure is \num{ieee.key.fraud.chrono}\%, and with the seven-day gap \num{ieee.key.fraud.chrono_gap}\%. For legitimate test transactions the corresponding figures are \num{ieee.key.legit.random}\% and \num{ieee.key.legit.chrono}\%. A model that has learned to recognise previously flagged cards is rewarded three times as often under the random split, and no single column has to identify the card: a flexible model can in principle recover it from the combination. This also explains the shape of the weekly curves in Figure~\ref{fig:time}: the advantage comes from other transactions of the same fraud episode, which are available at any moment under a random split and never under a chronological one.
+
+ULB has no card columns, but the same clustering is visible in time. Under a random split, \num{ulb.prox.min1.random}\% of test fraud cases have a training fraud case within one minute, \num{ulb.prox.min10.random}\% within ten minutes, and \num{ulb.prox.dup.random}\% are exact duplicates of a training fraud case in all features. Under the chronological split none are.
+
+Finally, giving the models the raw timestamp as a feature made no measurable difference on ULB: the mean random-split \prauc{} is \num{ulb.mean.tf.random} with it and \num{ulb.mean.random.pr} without.

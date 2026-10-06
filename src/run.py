@@ -109,8 +109,10 @@ def jobs(args, ds):
                 if proto in args.protocols:
                     yield (f"{proto}_w{w}", "weight", seed, tr, va, te)
         elif args.exp == "cv":
+            only = [x for x in args.protocols if x in ("blockcv", "randcv")]
             for f, proto, tr, va, te in splits.cv_folds(ds.y, seed):
-                yield (f"{proto}_f{f}", "weight", seed, tr, va, te)
+                if not only or proto in only:
+                    yield (f"{proto}_f{f}", "weight", seed, tr, va, te)
         elif args.exp == "smote":
             # "weight" repeats the class-weight baseline; only needed with --max-rows,
             # otherwise the runs of the main experiment are the same.

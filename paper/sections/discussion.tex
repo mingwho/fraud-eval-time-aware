@@ -24,6 +24,11 @@ IEEE-CIS is large enough for these effects to be measured tightly. ULB is not. I
 \paragraph{Limitations}
 Both datasets are public and anonymised, and we deliberately used raw features. A production system would add card-history aggregates, which change both the level of performance and possibly the size of the gap; our numbers are not estimates of production performance. The card key we use on IEEE-CIS is a heuristic, and we do not know how or when that dataset's labels were assigned. Hyperparameters were tuned with 30 trials per model; for cost reasons the IEEE-CIS oversampling experiment used a 200{,}000-transaction subsample with three seeds, and rolling windows and cross-validation used one seed. The chronological protocols score a fixed model on six weeks of data and do not model retraining or investigator feedback, which the realistic-evaluation literature treats in depth~\cite{dalpozzolo2018credit}. We did not study sequence models or graph-based methods, whose leakage behaviour may differ.
 
+\begin{acks}
+%% AI-use disclosure required by ACM policy. Edit the wording as you see fit.
+The experiments, analysis code and text of this paper were prepared with the assistance of Claude Code (Anthropic), working under the direction of the author, who reviewed the results and is responsible for the content.
+\end{acks}
+
 \section{Conclusion}
 
 On the larger of the two public payment-fraud datasets, the \prauc{} of five standard classifiers is \num{ieee.min.rel.pr}--\num{ieee.max.rel.pr}\% lower on future transactions than a random split suggests, and oversampling before the split inflates scores further, in both cases because transactions from the same fraud episode fall on both sides of the split. On the smaller dataset the split matters less than it first appears and the oversampling leak matters more, and the dataset is too small to support the fine-grained model comparisons often drawn from a single split of it. Time-ordered splits, resampling confined to the training data, alert-budget metrics and a check on the same transactions cost little to adopt, and they turn a benchmark score into an estimate of what a fraud team would see.

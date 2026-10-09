@@ -68,7 +68,7 @@ A second experiment replaces class weights with SMOTE~\cite{chawla2002smote}, wh
 \item[SMOTE before the split.] The flawed pipeline described in some of the literature. The whole dataset is scaled and oversampled, and the balanced result is then split at random. Test rows are now half synthetic, and synthetic training rows have been interpolated from test fraud cases.
 \end{description}
 
-For the flawed pipeline we report two scores. The first is the score on its own oversampled test set, which is the number such a study would publish. The second is the score of the same fitted models on only the genuine transactions of that test set. The first score mixes two effects, a test set that no longer has the real class ratio and information flowing from test to training rows, whereas the second isolates the information flow.
+For the flawed pipeline we report two scores. The first is the score on its own oversampled test set, which is the number such a study would publish. The second is the score of the same fitted models on only the genuine transactions of that test set. The first score mixes two effects, a test set that no longer has the real class ratio and information flowing from test to training rows. The second removes the effect of evaluating on a rebalanced test distribution while retaining the influence of any information leakage during training.
 
 On ULB the oversampling experiment uses the full data and five seeds. On IEEE-CIS, where oversampling doubles an already large training set, it uses a random subsample of 200{,}000 transactions and three seeds, with a class-weight baseline rerun on the same subsample. Rolling windows and cross-validation use one seed, since they already repeat the comparison over windows or folds.
 

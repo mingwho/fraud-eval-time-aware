@@ -3,15 +3,15 @@
 
 \subsection{Datasets}
 
-We use two public payment-fraud datasets that carry a timestamp, which a chronological split requires (Table~\ref{tab:data}).
+We use two public payment-fraud datasets that include a timestamp, which a chronological split requires (Table~\ref{tab:data}).
 
-\textbf{IEEE-CIS} is the labelled portion of the data released by Vesta Corporation for the IEEE-CIS Fraud Detection competition~\cite{ieeecis2019fraud}: card-not-present e-commerce transactions covering about six months. Each transaction has an amount, a time offset in seconds, and several hundred anonymised card, address, device, counting and vendor-engineered columns. It is our main dataset because it is large, spans months, and has enough fraud cases to give stable estimates.
+\textbf{IEEE-CIS} is the labeled portion of the data released by Vesta Corporation for the IEEE-CIS Fraud Detection competition~\cite{ieeecis2019fraud}. It consists of card-not-present e-commerce transactions covering about six months. Each transaction has an amount, a time offset in seconds, and several hundred anonymized card, address, device, counting and vendor-engineered columns. It is our main dataset because it is large and contains enough fraud cases to give stable estimates.
 
-\textbf{ULB} is the credit card dataset released by the Machine Learning Group of Universit\'e Libre de Bruxelles~\cite{dalpozzolo2015calibrating}: two days of transactions by European cardholders, described by 28 principal components, the amount and a time offset. It is short and has few fraud cases, which makes every estimate on it noisy, but it is one of the most widely used benchmarks, so a result on it bears on many published papers.
+\textbf{ULB} is the credit card dataset released by the Machine Learning Group of Universit\'e Libre de Bruxelles~\cite{dalpozzolo2015calibrating}. It covers two days of transactions by European cardholders, described by 28 principal components, the amount and a time offset. It is short and contains few fraud cases, so every estimate on it is noisy, but it is one of the most widely used benchmarks and results on it are relevant to many published papers.
 
 \input{generated/table_data}
 
-Feature engineering is deliberately minimal, because the subject is evaluation rather than leaderboard performance. We use the raw columns. Categorical columns are replaced by integer codes assigned in lexicographic order, which uses neither labels nor frequencies. The timestamp orders the data but is \emph{not} given to the models as a feature: a raw timestamp could let a model trained on a random split memorise when fraud bursts occurred, and we did not want the headline comparison to depend on that. Section~\ref{sec:mechanism} reports what happens when it is included.
+Feature engineering is deliberately minimal, because the subject of the study is evaluation rather than leaderboard performance. We use the raw columns. Categorical columns are replaced by integer codes assigned in lexicographic order, which uses neither labels nor frequencies. The timestamp orders the data but is \emph{not} given to the models as a feature, because a raw timestamp could allow a model trained on a random split to memorize when fraud bursts occurred, and we did not want the main comparison to depend on that. Section~\ref{sec:mechanism} reports what happens when it is included.
 
 \subsection{Split protocols}
 
@@ -19,27 +19,27 @@ Feature engineering is deliberately minimal, because the subject is evaluation r
 
 \begin{description}[leftmargin=1em,itemsep=2pt]
 \item[Random.] A stratified random split into 70\% training, 10\% validation and 20\% test transactions (Figure~\ref{fig:splits}).
-\item[Chronological.] Transactions are ordered by time; the first 70\% form the training set, the next 10\% the validation set and the last 20\% the test set.
-\item[Chronological with a gap (IEEE-CIS).] As above, but the seven days before the test period are removed from the training and validation data. In production the label of a transaction arrives only after a chargeback or an investigation, so the most recent transactions cannot be used for training~\cite{dalpozzolo2018credit}.
-\item[Rolling windows (IEEE-CIS).] The six months are cut into six equal blocks. A model is trained on blocks $k$ to $k{+}2$ and tested on block $k{+}3$, for $k=1,2,3$. For each window we also draw a random split of the same four blocks with the same test-set size, so the random-versus-chronological comparison is repeated on three different periods.
+\item[Chronological.] Transactions are ordered by time. The first 70\% form the training set, the next 10\% the validation set and the last 20\% the test set.
+\item[Chronological with a gap (IEEE-CIS).] As above, but the seven days before the test period are removed from the training and validation data. In production, the label of a transaction arrives only after a chargeback or an investigation, so the most recent transactions cannot be used for training~\cite{dalpozzolo2018credit}.
+\item[Rolling windows (IEEE-CIS).] The six months are divided into six equal blocks. A model is trained on blocks $k$ to $k{+}2$ and tested on block $k{+}3$, for $k=1,2,3$. For each window we also draw a random split of the same four blocks with the same test-set size, so that the random-versus-chronological comparison is repeated on three different periods.
 \end{description}
 
-Under the random and chronological protocols the final model is trained on the same number of transactions (80\%) and tested on the same number (20\%). Only \emph{which} transactions land on each side differs.
+Under the random and chronological protocols, the final model is trained on the same number of transactions (80\%) and tested on the same number (20\%). The protocols differ only in \emph{which} transactions are assigned to each side.
 
-The two test sets do differ, however, and a later period could simply be harder. We therefore add two controls in which both protocols are scored on the same transactions. The \emph{period-matched} control scores each random-split model only on those of its test transactions that fall inside the chronological test period. The \emph{blocked cross-validation} control compares five-fold cross-validation with random folds against five-fold cross-validation whose folds are five contiguous time blocks; each scheme tests every transaction exactly once. Blocked folds are not forward-looking (a model may be trained on later data), but they remove the interleaving of training and test transactions in time, so the difference between the two schemes isolates that interleaving.
+The two test sets nevertheless differ, and a later period could simply be harder than an average one. We therefore add two controls in which both protocols are scored on the same transactions. The \emph{period-matched} control scores each random-split model only on those of its test transactions that fall inside the chronological test period. The \emph{blocked cross-validation} control compares five-fold cross-validation with random folds against five-fold cross-validation whose folds are five contiguous time blocks, so that each scheme tests every transaction exactly once. Blocked folds are not forward-looking, since a model may be trained on later data, but they remove the interleaving of training and test transactions in time, and the difference between the two schemes therefore isolates the effect of that interleaving.
 
 \subsection{Models and tuning}
 
 We evaluate five standard classifiers: logistic regression, a random forest~\cite{breiman2001random}, XGBoost~\cite{chen2016xgboost}, LightGBM~\cite{ke2017lightgbm} and a small multilayer perceptron (MLP). Table~\ref{tab:space} lists the search spaces.
 
-Each model is tuned with 30 trials of Optuna's tree-structured Parzen estimator~\cite{akiba2019optuna}, maximising \prauc{} on the validation set of the protocol at hand. The boosted models and the MLP stop early on validation \prauc{}. The selected configuration is then refitted on training plus validation data, with the number of boosting rounds or epochs found during tuning, and scored once on the test set. A seed repeats this whole pipeline: split (random protocol only), tuning, refit and test. We run five seeds. Under the chronological protocol the split is fixed, so the seeds vary only the tuner and the model; the standard deviations we report for it therefore understate sampling uncertainty, and we complement them with a bootstrap over test transactions and with the rolling windows.
+Each model is tuned with 30 trials of Optuna's tree-structured Parzen estimator~\cite{akiba2019optuna}, maximizing \prauc{} on the validation set of the protocol at hand. The boosted models and the MLP use early stopping on validation \prauc{}. The selected configuration is then refitted on the combined training and validation data, with the number of boosting rounds or epochs found during tuning, and scored once on the test set. A seed repeats this entire pipeline, including the split (for the random protocol), tuning, refitting and testing, and we run five seeds. Under the chronological protocol the split is fixed, so the seeds vary only the tuner and the model. The standard deviations we report for that protocol therefore understate sampling uncertainty, and we complement them with a bootstrap over test transactions and with the rolling windows.
 
-The tree models receive the raw matrix with missing values, and each tree of the random forest is grown on at most 100{,}000 sampled training rows. Logistic regression and the MLP receive median-imputed, standardised features, with the amount log-transformed; the imputation and scaling statistics are computed on the training rows of each fit and never on validation or test rows.
+The tree models receive the raw matrix with missing values, and each tree of the random forest is grown on at most 100{,}000 sampled training rows. Logistic regression and the MLP receive median-imputed, standardized features with the amount log-transformed. The imputation and scaling statistics are computed on the training rows of each fit and never on validation or test rows.
 
-\begin{table}[t]
+\begin{table}[htbp]
 \caption{Hyperparameter search spaces (30 trials per model, protocol and seed). $\alpha$ is the class-weight exponent of Section~\ref{sec:imbalance}.}
 \label{tab:space}
-\small
+\footnotesize
 \begin{tabular}{ll}
 \toprule
 Model & Search space \\
@@ -59,25 +59,25 @@ MLP & 2--3 hidden layers of width 64, 128 or 256; dropout $\in [0,0.5]$; learnin
 \subsection{Class imbalance and the oversampling leak}
 \label{sec:imbalance}
 
-The default treatment of imbalance is cost-sensitive learning. The positive class receives weight $r^{\alpha}$, where $r$ is the ratio of legitimate to fraudulent training transactions and $\alpha \in [0,1]$ is tuned with the other hyperparameters; $\alpha=0$ is no weighting and $\alpha=1$ is full balancing.
+The default treatment of class imbalance is cost-sensitive learning. The positive class receives weight $r^{\alpha}$, where $r$ is the ratio of legitimate to fraudulent training transactions and $\alpha \in [0,1]$ is tuned together with the other hyperparameters. A value of $\alpha=0$ corresponds to no weighting and $\alpha=1$ to full balancing.
 
-A second experiment replaces class weights by SMOTE~\cite{chawla2002smote}, which synthesises minority examples by interpolating between a minority example and one of its minority-class nearest neighbours. We run it in two ways under the random split:
+A second experiment replaces class weights with SMOTE~\cite{chawla2002smote}, which synthesizes minority examples by interpolating between a minority example and one of its minority-class nearest neighbors. We run it in two ways under the random split.
 
 \begin{description}[leftmargin=1em,itemsep=2pt]
-\item[SMOTE on training rows.] The correct pipeline. Only the rows used to fit a model are oversampled; validation and test rows are untouched.
-\item[SMOTE before the split.] The flawed pipeline found in the literature. The whole dataset is scaled and oversampled, and the balanced result is then split at random. Test rows are now half synthetic, and synthetic training rows have been interpolated from test fraud cases.
+\item[SMOTE on training rows.] The correct pipeline. Only the rows used to fit a model are oversampled, and validation and test rows are left untouched.
+\item[SMOTE before the split.] The flawed pipeline described in some of the literature. The whole dataset is scaled and oversampled, and the balanced result is then split at random. Test rows are now half synthetic, and synthetic training rows have been interpolated from test fraud cases.
 \end{description}
 
-For the flawed pipeline we report two scores: the score on its own oversampled test set, which is the number such a study would publish, and the score of the same fitted models on only the genuine transactions of that test set. The first mixes two effects, a test set that no longer has the real class ratio and information flowing from test to training rows. The second isolates the information flow.
+For the flawed pipeline we report two scores. The first is the score on its own oversampled test set, which is the number such a study would publish. The second is the score of the same fitted models on only the genuine transactions of that test set. The first score mixes two effects, a test set that no longer has the real class ratio and information flowing from test to training rows, whereas the second isolates the information flow.
 
 On ULB the oversampling experiment uses the full data and five seeds. On IEEE-CIS, where oversampling doubles an already large training set, it uses a random subsample of 200{,}000 transactions and three seeds, with a class-weight baseline rerun on the same subsample. Rolling windows and cross-validation use one seed, since they already repeat the comparison over windows or folds.
 
 \subsection{Metrics}
 
-The primary metric is the area under the precision--recall curve (\prauc{}, computed as average precision), which is more informative than \rocauc{} when positives are rare~\cite{davis2006relationship,saito2015precision}. We report \rocauc{} for comparison with prior work.
+The primary metric is the area under the precision--recall curve (\prauc{}, computed as average precision), which is more informative than \rocauc{} when positives are rare~\cite{davis2006relationship,saito2015precision}. We also report \rocauc{} for comparison with prior work.
 
-A fraud team can review only a limited number of alerts, so we also report \emph{alert-budget} metrics. The highest-scored 0.5\%, 1\% or 5\% of test transactions are flagged, and we measure \emph{recall}, the share of the test set's fraud cases that are flagged, and \emph{value recall}, the share of the fraudulent amount that the flagged transactions account for. Value recall weights each caught fraud by the money at stake. The 5\% budget is included because fraud makes up more than 1\% of IEEE-CIS, which caps recall at the two smaller budgets.
+A fraud team can review only a limited number of alerts, so we additionally report \emph{alert-budget} metrics. The highest-scored 0.5\%, 1\% or 5\% of test transactions are flagged, and we measure \emph{recall}, the share of the test set's fraud cases that are flagged, and \emph{value recall}, the share of the fraudulent amount that the flagged transactions account for. Value recall weights each detected fraud case by its amount. The 5\% budget is included because fraud makes up more than 1\% of IEEE-CIS, which caps recall at the two smaller budgets.
 
 \subsection{Implementation}
 
-Experiments use Python 3.12 with scikit-learn 1.9~\cite{pedregosa2011scikit}, XGBoost 3.4, LightGBM 4.7, PyTorch 2.14~\cite{paszke2019pytorch}, imbalanced-learn 0.14~\cite{lemaitre2017imbalanced} and Optuna 5.0, on a 14-core Apple M4 Pro laptop with 24\,GB of memory. The test scores of every run are stored, all tables and figures are generated from them, and code to reproduce every number is available at \url{https://github.com/mingwho/fraud-eval-time-aware}.
+Experiments use Python 3.12 with scikit-learn 1.9~\cite{pedregosa2011scikit}, XGBoost 3.4, LightGBM 4.7, PyTorch 2.14~\cite{paszke2019pytorch}, imbalanced-learn 0.14 and Optuna 5.0, on a 14-core Apple M4 Pro laptop with 24\,GB of memory. The test scores of every run are stored, all tables and figures are generated from them, and code to reproduce every number is available at \url{https://github.com/mingwho/fraud-eval-time-aware}.

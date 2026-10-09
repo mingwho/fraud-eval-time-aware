@@ -1,4 +1,4 @@
-\begin{figure}[t]
+\begin{figure}[htbp]
 \centering
 \begin{tikzpicture}[x=0.1cm,y=0.45cm,font=\small]
   \definecolor{tr}{HTML}{2A78D6}
@@ -39,7 +39,7 @@
     \fill[un] (60,0) rectangle (63,0.5); \node[anchor=west] at (63.5,0.25) {unused};
   \end{scope}
 \end{tikzpicture}
-\caption{The split protocols. A random split interleaves training and test transactions in time; the chronological protocols score only transactions that occur after every training transaction.}
+\caption{The split protocols. A random split interleaves training and test transactions in time, whereas the chronological protocols score only transactions that occur after every training transaction.}
 \Description{Four horizontal bars over a time axis. In the random split, train, validation and test segments are interleaved. In the chronological split the first 70 percent is train, the next 10 percent validation and the last 20 percent test. The gap variant leaves the week before the test period unused. The rolling variant slides a train, validation and test window forward three times.}
 \label{fig:splits}
 \end{figure}

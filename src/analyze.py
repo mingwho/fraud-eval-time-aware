@@ -67,7 +67,7 @@ def available(df, exp):
 def table_main(df, metrics, caption, label, fname):
     """Random vs chronological split, one row per dataset and model."""
     main = df[df.exp == "main"]
-    lines = [r"\begin{table}[t]", rf"\caption{{{caption}}}", rf"\label{{{label}}}",
+    lines = [r"\begin{table}[htbp]", rf"\caption{{{caption}}}", rf"\label{{{label}}}",
              r"\small", r"\begin{tabular}{ll" + "rrr" * len(metrics) + "}", r"\toprule",
              " & " + "".join(rf" & \multicolumn{{3}}{{c}}{{{name}}}" for _, name in metrics) + r" \\",
              "".join(rf"\cmidrule(lr){{{3 + 3 * i}-{5 + 3 * i}}}" for i in range(len(metrics))),
@@ -97,7 +97,7 @@ def table_budget(df):
     cols = [("recall@0.005", "Recall, 0.5\\%"), ("recall@0.01", "Recall, 1\\%"),
             ("recall@0.05", "Recall, 5\\%"), ("value_recall@0.01", "Value recall, 1\\%"),
             ("value_recall@0.05", "Value recall, 5\\%")]
-    lines = [r"\begin{table}[t]",
+    lines = [r"\begin{table}[htbp]",
              r"\caption{Alert-budget metrics: share of fraud cases (recall) and of fraud value "
              r"(value recall) caught when the highest-scored 0.5\%, 1\% or 5\% of test "
              r"transactions are flagged. R = random split, C = chronological split; mean over 5 "
@@ -130,7 +130,7 @@ def table_controls(df, pmatch):
     mean, _ = agg(main, "pr_auc")
     cv = cv_frame(df).groupby(["dataset", "model", "scheme"]).pr_auc.mean().unstack()
     pmm = pmatch.groupby(["dataset", "model"]).pr_auc.mean()
-    lines = [r"\begin{table}[t]",
+    lines = [r"\begin{table}[htbp]",
              r"\caption{Controls that score both protocols on the same transactions (\prauc{}). "
              r"Left: random-split models scored only on their test transactions inside the "
              r"chronological test period, against the chronological models. Right: five-fold "
@@ -223,7 +223,7 @@ def table_smote(df):
              "reported_pr_auc", "reported_f1_at_0.5"),
             ("\\shortstack{SMOTE before split,\\\\genuine test rows}", s[s.imb == "smote_leaky"],
              "pr_auc", "f1_at_0.5")]
-    lines = [r"\begin{table}[t]",
+    lines = [r"\begin{table}[htbp]",
              r"\caption{Oversampling leak under a random split. ``As reported'' scores the "
              r"flawed pipeline on its own oversampled test set; ``genuine test rows'' scores the "
              r"same models on the genuine transactions of that test set. Mean over 5 seeds.}",
@@ -247,7 +247,7 @@ def table_smote(df):
 
 # ------------------------------------------------------------------ dataset table
 def table_data(names):
-    lines = [r"\begin{table}[t]",
+    lines = [r"\begin{table}[htbp]",
              r"\caption{Datasets. The last two columns give the fraud rate in the first 80\% "
              r"and the last 20\% of transactions in time order.}",
              r"\label{tab:data}", r"\small", r"\begin{tabular}{lrrrrrrr}", r"\toprule",
@@ -384,7 +384,7 @@ def figure_time(df):
     roll["x"] = roll.protocol.str[-1].astype(int) + 4
     wk = weekly_frame(df).rename(columns={"protocol": "split", "week": "x"})
     models = [m for m in MODELS if (roll.model == m).any() and (wk.model == m).any()]
-    fig, axes = plt.subplots(2, len(models), figsize=(7.0, 3.5), sharey=True, squeeze=False)
+    fig, axes = plt.subplots(2, len(models), figsize=(7.0, 3.0), sharey=True, squeeze=False)
     rows = [(roll, [4, 5, 6], (3.7, 6.3), "Test month (model trained on the three months before it)"),
             (wk, list(range(1, 7)), (0.6, 6.4), "Week of the final 20% of the timeline")]
     for r, (frame, ticks, xlim, xlabel) in enumerate(rows):

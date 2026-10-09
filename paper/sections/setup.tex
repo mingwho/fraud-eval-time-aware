@@ -17,10 +17,8 @@ Feature engineering is deliberately minimal, because the subject is evaluation r
 
 \input{sections/splitfig}
 
-Figure~\ref{fig:splits} shows the protocols.
-
 \begin{description}[leftmargin=1em,itemsep=2pt]
-\item[Random.] A stratified random split into 70\% training, 10\% validation and 20\% test transactions. This is the common practice in published work.
+\item[Random.] A stratified random split into 70\% training, 10\% validation and 20\% test transactions (Figure~\ref{fig:splits}).
 \item[Chronological.] Transactions are ordered by time; the first 70\% form the training set, the next 10\% the validation set and the last 20\% the test set.
 \item[Chronological with a gap (IEEE-CIS).] As above, but the seven days before the test period are removed from the training and validation data. In production the label of a transaction arrives only after a chargeback or an investigation, so the most recent transactions cannot be used for training~\cite{dalpozzolo2018credit}.
 \item[Rolling windows (IEEE-CIS).] The six months are cut into six equal blocks. A model is trained on blocks $k$ to $k{+}2$ and tested on block $k{+}3$, for $k=1,2,3$. For each window we also draw a random split of the same four blocks with the same test-set size, so the random-versus-chronological comparison is repeated on three different periods.

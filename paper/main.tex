@@ -1,49 +1,8 @@
 \documentclass[manuscript,screen,nonacm]{acmart}
 % The conference template is the ACM single-column manuscript format; this is its LaTeX form.
-\usepackage{booktabs}
-\usepackage{tikz}
-\usepackage{enumitem}
-\renewcommand{\topfraction}{0.9}
-\renewcommand{\textfraction}{0.05}
-\renewcommand{\floatpagefraction}{0.8}
-\setcounter{topnumber}{3}
-
-\newcommand{\prauc}{PR-AUC}
-\newcommand{\rocauc}{ROC-AUC}
-
-\input{generated/numbers}
-
+% main.tex: version with author names. main_anon.tex: anonymized version for review.
+\newif\ifanon\anonfalse
+\input{preamble}
 \begin{document}
-
-\title[Random Splits Overstate Fraud Detection]{Random Splits Overstate Fraud Detection: A Time-Aware Re-evaluation of Classical Models on Public Payment Data}
-
-\author{Ming Hu}
-\email{huming@google.com}
-\affiliation{\institution{Google}\country{USA}}
-\author{Tushar Mittal}
-\email{tusharmittal@google.com}
-\affiliation{\institution{Google}\country{USA}}
-\author{Khushan Adatiya}
-\email{khushan@google.com}
-\affiliation{\institution{Google}\country{USA}}
-
-\input{sections/abstract}
-
-\ccsdesc[500]{Computing methodologies~Supervised learning by classification}
-\ccsdesc[300]{Computing methodologies~Cross-validation}
-\ccsdesc[300]{Applied computing~Secure online transactions}
-
-\keywords{fraud detection, model evaluation, data leakage, temporal split, class imbalance, SMOTE, payments}
-
-\maketitle
-
-\input{sections/intro}
-\input{sections/related}
-\input{sections/setup}
-\input{sections/results}
-\input{sections/discussion}
-
-\bibliographystyle{ACM-Reference-Format}
-\bibliography{refs}
-
+\input{body}
 \end{document}

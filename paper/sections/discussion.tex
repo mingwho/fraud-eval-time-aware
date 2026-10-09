@@ -24,9 +24,11 @@ IEEE-CIS is large enough for these effects to be measured precisely, but ULB is 
 \paragraph{Limitations}
 Both datasets are public and anonymized, and we deliberately used raw features. A production system would add card-history aggregates, which change both the level of performance and possibly the size of the gap, so our numbers are not estimates of production performance. The card key we use on IEEE-CIS is a heuristic, and we do not know how or when that dataset's labels were assigned. For reasons of cost, the IEEE-CIS oversampling experiment used a 200{,}000-transaction subsample with three seeds, and the rolling windows and cross-validation used one seed. The chronological protocols score a fixed model on six weeks of data and do not model retraining or investigator feedback, which the realistic-evaluation literature treats in depth~\cite{dalpozzolo2018credit}. We did not study sequence models or graph-based methods, whose leakage behavior may differ.
 
+\ifanon\else
 \begin{acks}
 In preparing this paper, the authors used Claude Code (Anthropic) as a coding and writing assistant. We used it to implement the experiment pipeline, run the experiments, produce drafts of the text, and check references. We designed the study, specified the experiments and the analyses, reviewed and edited all code, results and text, and take full responsibility for the content.
 \end{acks}
+\fi
 
 \section{Conclusion}
 

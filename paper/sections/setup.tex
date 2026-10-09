@@ -76,7 +76,7 @@ On ULB the oversampling experiment uses the full data and five seeds. On IEEE-CI
 
 The primary metric is the area under the precision--recall curve (\prauc{}, computed as average precision), which is more informative than \rocauc{} when positives are rare~\cite{davis2006relationship,saito2015precision}. We also report \rocauc{} for comparison with prior work.
 
-A fraud team can review only a limited number of alerts, so we additionally report \emph{alert-budget} metrics. The highest-scored 0.5\%, 1\% or 5\% of test transactions are flagged, and we measure \emph{recall}, the share of the test set's fraud cases that are flagged, and \emph{value recall}, the share of the fraudulent amount that the flagged transactions account for. Value recall weights each detected fraud case by its amount. The 5\% budget is included because fraud makes up more than 1\% of IEEE-CIS, which caps recall at the two smaller budgets.
+A fraud team can review only a limited number of alerts, so we additionally report \emph{alert-budget} metrics. The highest-scored 0.5\%, 1\% or 5\% of test transactions are flagged, and we measure \emph{recall}, the share of the test set's fraud cases that are flagged, and \emph{value recall}, the share of the fraudulent amount that the flagged transactions account for. Value recall weights each detected fraud case by its amount.
 
 \subsection{Implementation}
 

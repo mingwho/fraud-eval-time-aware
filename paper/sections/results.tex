@@ -43,7 +43,7 @@ The top row of Figure~\ref{fig:time} repeats the comparison on three different f
 
 Removing the last seven days before the test period from the training data, to mimic label delay, has a small additional cost. Depending on the model, \prauc{} falls by a further \num{ieee.min.gap7.drop} to \num{ieee.max.gap7.drop}.
 
-The bottom row of Figure~\ref{fig:time} follows the models through the six weeks of the test period. If the gap were caused by gradual drift, the chronological models would start close to the random-split ones and fall away over time. Instead, the gap is already close to its full size in the first week after the training cut-off, and over the six weeks it fluctuates and widens only slightly for the boosted models. The two curves rise and fall together, which reflects weeks that are easier or harder for any model. The advantage conferred by the random split is therefore lost as soon as training and test transactions are no longer interleaved (Section~\ref{sec:mechanism}).
+The bottom row of Figure~\ref{fig:time} follows the models through the six weeks of the test period. If the gap were caused by gradual drift, the chronological models would start close to the random-split ones and fall away over time. Instead, the gap is already close to its full size in the first week after the training cut-off, and over the six weeks it fluctuates and widens only slightly for the boosted models. The advantage conferred by the random split is therefore lost as soon as training and test transactions are no longer interleaved (Section~\ref{sec:mechanism}).
 
 \subsection{Alert budgets}
 
